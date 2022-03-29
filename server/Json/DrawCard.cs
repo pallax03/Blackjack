@@ -1,12 +1,9 @@
 class DrawCard
 {
-    class Deck
-    {
-        public bool Success { get; set; }
-        public string DeckId { get; set; }
-        public Card[] Cards { get; set; }
-        public long Remaining { get; set; }
-    }
+    public bool Success { get; set; }
+    public string DeckId { get; set; }
+    public Card[] Cards { get; set; }
+    public long Remaining { get; set; }
 
     public partial class Card
     {
