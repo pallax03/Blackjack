@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Client BlackJack</title>
+</head>
+<body>
+    <script>
+        const ws = new WebSocket("ws://127.0.0.1:9000/Board");   //server da contattare
+        var idclient=0;
+
+        ws.addEventListener("open", () =>{  //evento di connessione
+            console.log("we are connected!");
+        });
+
+        ws.addEventListener("message", e =>{  //evento di ricezione messaggio
+            console.log(e.data);
+            if(e.data=="start")
+                setUpBoard();
+        });
+        function send(str){   //Invio messaggio al server
+            ws.send(str);
+            cambiaBottone();
+        }
+        function cambiaBottone() {
+            document.getElementById("inizio").innerHTML="<h2>Sei pronto!!</h2>";
+        }
+        function setUpBoard() {
+            document.body.style = "background-color:green;"
+            document.getElementById("inizio").innerHTML="<h2>gioco iniziato</h2>";
+        }
+    </script>
+
+<div id="inizio">
+    <button id="bottonepronto" onclick="send('ready')">Sei pronto?</button>
+</div>
+<br>
+<br>
+</div>
+
+</body>
+</html>

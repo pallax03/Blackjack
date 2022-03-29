@@ -1,0 +1,27 @@
+{
+    "success":true,
+    "deck_id":"3qrs55ainajq",
+    "cards":[
+       {
+          "code":"3D",
+          "image":"https://deckofcardsapi.com/static/img/3D.png",
+          "images":{
+             "svg":"https://deckofcardsapi.com/static/img/3D.svg",
+             "png":"https://deckofcardsapi.com/static/img/3D.png"
+          },
+          "value":"3",
+          "suit":"DIAMONDS"
+       },
+       {
+          "code":"QH",
+          "image":"https://deckofcardsapi.com/static/img/QH.png",
+          "images":{
+             "svg":"https://deckofcardsapi.com/static/img/QH.svg",
+             "png":"https://deckofcardsapi.com/static/img/QH.png"
+          },
+          "value":"QUEEN",
+          "suit":"HEARTS"
+       }
+    ],
+    "remaining":24
+ }
