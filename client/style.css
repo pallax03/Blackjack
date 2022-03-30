@@ -1,0 +1,93 @@
+/* root variables */
+:root {
+/** general variables **/
+--white: #fff;
+--black: #000;
+--selected: #0077FF;
+}
+* {box-sizing: border-box;transition: all 0.6s ease-in-out;}
+body
+{
+  font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+  
+.table
+{
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  padding: 100px;
+}
+
+.start
+{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#playername
+{
+  outline: none;
+  border: 2px solid black;
+  margin-bottom: 20px;
+  padding: 20px;
+  font-size: 32px;
+}
+.error
+{
+  border-color: red !important;
+}
+
+
+#ready
+{
+  outline: none;
+  border: 2px solid black;
+  margin-bottom: 20px;
+  padding: 8px 20px;
+  font-size: 22px;
+  cursor: pointer;
+}
+#ready:hover
+{
+  outline: none;
+  border: 2px solid var(--selected);
+  color: var(--selected);
+  background-color: var(--white);
+  margin-bottom: 20px;
+  padding: 8px 42px;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+
+.waiting
+{
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: waitingtext 2s linear 0s infinite alternate;
+}
+
+@keyframes waitingtext {
+  from {
+    width: 0;
+  }
+  to {
+    width: 150px;
+  }
+}
+
+  
+/*  Responsive  */
+@media screen and (max-width: 1100px)
+{
+    
+}
+  
