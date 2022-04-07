@@ -3,9 +3,10 @@ using WebSocketSharp.Server;
 
 public class Chat : WebSocketBehavior
 {
-    //Lista di client connessi
+    //list of websocket ~ 1 websocket = 1 client
     private static List<WebSocket> _clientSockets = new List<WebSocket>();
-    //numero di client connessi
+    
+    //number of client connected
     private static int count;
 
     protected override void OnOpen()
@@ -13,7 +14,7 @@ public class Chat : WebSocketBehavior
         WebSocket clientN = Context.WebSocket;
         count = _clientSockets.Count;
         Console.WriteLine("Richiesta connessione da client: " + (count + 1 ).ToString());
-        //accetto solo 7 client
+        //it only accepts a maximum of 7 clients
         if (count > 8)
         {
             Console.WriteLine("Chiusa connessione con client: " + (count + 1).ToString());

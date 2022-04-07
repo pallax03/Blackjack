@@ -6,83 +6,95 @@ using WebSocketSharp.Server;
 
 public class Board : WebSocketBehavior
 {
-    //Lista di client connessi
+    //list of websocket ~ 1 websocket = 1 client
     private static List<WebSocket> _clientSockets = new List<WebSocket>();
-    private static List<bool> _clientready = new List<bool>();
-    //numero di client connessi
-    private static int count;
 
-    //Variabili di gioco
-    private static List<Player> _players = new List<Player>();
-    private static NewDeck _jsonNewDeck = new NewDeck();//mazzo
-    private static DrawCard _jsonDrawCard = new DrawCard();//carta pescata
+    //list of boolean, parallel of clientsocket list
+    private static List<bool> _clientready = new List<bool>();
+
+    //Game Variables
+    private static List<Player> _players = new List<Player>();//Players list, with this class i have the full control of the game (name, chat history, score and socket).
+    private static NewDeck _jsonNewDeck = new NewDeck();//Deck Obj
+    private static DrawCard _jsonDrawCard = new DrawCard();//Drawed Card Obj
 
     protected override void OnOpen()
     {
         WebSocket clientN = Context.WebSocket;
-        count = _clientSockets.Count;
-        Console.WriteLine("Richiesta connessione da client: " + (count + 1 ).ToString());
-        //accetto solo 7 client
-        if (count > 8)
+        Console.WriteLine("Richiesta connessione da client: " + (_clientSockets.Count + 1 ).ToString());
+        //it only accepts a maximum of 7 clients
+        if (_clientSockets.Count > 8)
         {
-            Console.WriteLine("Chiusa connessione con client: " + (count + 1).ToString());
+            Console.WriteLine("Chiusa connessione con client: " + (_clientSockets.Count + 1).ToString());
             Context.WebSocket.Close();
         }
         else {
             _clientSockets.Add(clientN);
             _clientready.Add(false);
+            _players.Add(new Player(Context.WebSocket));
         }
     }
-    protected override void OnMessage(MessageEventArgs e)
+    protected override void OnMessage(MessageEventArgs e)//here, I handle all messages
     {
-        //gestisco tutti i messaggi
-
-        //attesa di stato pronto
-        if(e.Data.Contains("|ready|"))
+        //in order of the initial actions of the game
+        if(e.Data.Contains("|ready|"))//the client put his state on ready
         {
-            int nready=0;
+            int nready=0;//count how many players they have set up --initialization
             string[] splitted = e.Data.Split("|");
-            _players.Add(new Player(splitted[0],Context.WebSocket , 0));
-            for (int i = 0; i < _clientSockets.Count; i++)
+            Console.WriteLine(e.Data+" nome: "+splitted[0]);
+            _players[FindPlayer(Context.WebSocket)].Initialize(splitted[0], 0);//add other information of the player (name, number of cards in his hand)
+
+            for (int i = 0; i < _clientSockets.Count; i++)//search the correct client socket index
             {
-                if(Context.WebSocket==_clientSockets[i])
+                if(Context.WebSocket==_clientSockets[i])//set the client ready in the parrarel bool list
                     _clientready[i]=true;
 
-                if(_clientready[i]==true)
+                if(_clientready[i]==true)//count how many players they have set up --storage
                     nready++;
             }
 
-            Context.WebSocket.Send($"players|{nready}|{_clientready.Count}");
-            ControllaStatoPronto();
+            SendToAll($"players|{nready}|{_clientready.Count}");//Send to all client the state of ready players
+            ControlReadyState();//Control if all the players set ready
         }
-
-        if(e.Data == "Carte")
+        else if(e.Data == "|bet|")//the client bet
         {
 
         }
-        
-        if(e.Data == "Carta")
+        else if(e.Data == "|card|")//the client request a card
+        {
+            GiveCard(Context.WebSocket);
+        }
+        else if(e.Data == "|hit|")//the client ...
+        {
+
+        }
+        else if(e.Data == "|doubledown|")//the client doubledown
         {
             
         }
 
     }
-
-    public void ControllaStatoPronto()
+    public void SendToAll(string message)//Send a message to all the clients
     {
-        bool Inizia=true;
-        for (int i = 0; i < _clientready.Count && Inizia==true; i++)
+        foreach (var socket in _clientSockets)
         {
-            if (_clientready[i]==false)
+            socket.Send(message);
+        }
+    }
+    public void ControlReadyState()
+    {
+        bool start=true;
+        for (int i = 0; i < _clientready.Count && start==true; i++)
+        {
+            if (_clientready[i]==false)//if any of the client is not ready the variable start go false
             {
-                Inizia=false;
+                start=false;
             }
         }
-        if(Inizia)
+        if(start)//so the method is not called
             StartGame();
     }
 
-    public void StartGame()
+    public void StartGame()//Start the game
     {
         //call deck API
         for (int i = 0; i < _clientSockets.Count; i++)
@@ -90,16 +102,16 @@ public class Board : WebSocketBehavior
             _clientSockets[i].Send("|start|");
         }
         var url = new Uri("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1");
-        using (var client = new HttpClient())//api che mescola il mazzo
+        using (var client = new HttpClient())//api that set up the deck
         {
-            //voglio cotattare con una GET
+            //I want to contact with a GET
             var getResult = client.GetAsync(url).Result;
             var getResultJson = getResult.Content.ReadAsStringAsync().Result;
-            _jsonNewDeck = JsonConvert.DeserializeObject<NewDeck>(getResultJson);//json deck istanziato
-            //bisogno di id del deck per gestire il gioco
+            _jsonNewDeck = JsonConvert.DeserializeObject<NewDeck>(getResultJson);//storage the Deck Obj
+            //useful to know the deck_id to manage the deck with other calls to the api
         }
-        GiveCards();
-        Console.WriteLine(_jsonNewDeck.deck_id);
+        GiveCards();//gives the two starting cards to each player
+        Console.WriteLine(_jsonNewDeck.deck_id); //Debug
     }
     public void GiveCards()
     {
@@ -107,22 +119,48 @@ public class Board : WebSocketBehavior
         var url = new Uri($"https://deckofcardsapi.com/api/deck/{_jsonNewDeck.deck_id}/draw/?count=2");
         for (int i = 0; i < _clientSockets.Count; i++)
         {
-            
-            using (var client = new HttpClient())//api che richiede 2 carte
+            using (var client = new HttpClient())//api that request 2 cards
             {
-            //voglio cotattare con una GET
+            //I want to contact with a GET
             var getResult = client.GetAsync(url).Result;
             var getResultJson = getResult.Content.ReadAsStringAsync().Result;
-            _jsonDrawCard = JsonConvert.DeserializeObject<DrawCard>(getResultJson);//json carte date
-            _clientSockets[i].Send("jsonstartcards|"+getResultJson);//manda direttamente il json delle carte
-                // for (int j = 0; j < _jsonDrawCard.Cards.Length; j++)
-                // {
-                //     _players[i].Cards[_players[i].Ncards].Code = _jsonDrawCard.Cards[j].Code;
-                //     _players[i].Cards[_players[i].Ncards].Image = _jsonDrawCard.Cards[j].Image;
-                //     _players[i].Cards[_players[i].Ncards].Value = _jsonDrawCard.Cards[j].Value;
-                //     _players[i].Ncards++;
-                // }
+            _jsonDrawCard = JsonConvert.DeserializeObject<DrawCard>(getResultJson);//storage the Drawed Card Obj
+            _clientSockets[i].Send("jsonstartcards|"+getResultJson);//Send to the client the json, he need that for visualize the cards (value and image).
+            
+            for (int j = 0; j < _jsonDrawCard.Cards.Length; j++)//adds as many cards as the json sends him
+                _players[i].AddCard(_jsonDrawCard.Cards[j].Code,_jsonDrawCard.Cards[j].Image,_jsonDrawCard.Cards[j].Value);
+            
+            Console.WriteLine($"Name: {_players[i].Name}, Score: "+_players[i].Score);
             }
         }
+    }
+
+    public void GiveCard(WebSocket socket)
+    {
+        int playerfound_index = FindPlayer(socket);
+        //call card API
+        var url = new Uri($"https://deckofcardsapi.com/api/deck/{_jsonNewDeck.deck_id}/draw/?count=1");
+        using (var client = new HttpClient())//api that request a card
+        {
+        //I want to contact with a GET
+        var getResult = client.GetAsync(url).Result;
+        var getResultJson = getResult.Content.ReadAsStringAsync().Result;
+        _jsonDrawCard = JsonConvert.DeserializeObject<DrawCard>(getResultJson);//storage the Drawed Card Obj
+        socket.Send("jsonrequestedcard|"+getResultJson);//Send to the client the json, he need that for visualize the cards (value and image).
+        _players[playerfound_index].AddCard(_jsonDrawCard.Cards[0].Code,_jsonDrawCard.Cards[0].Image,_jsonDrawCard.Cards[0].Value);//adds as many cards as the json sends him
+        
+        Console.WriteLine($"Name: {_players[playerfound_index].Name}, Score: "+_players[playerfound_index].Score);
+        }
+    }
+
+    public int FindPlayer(WebSocket socket)//search for a player given the socket
+    {
+        int result=0;
+        for (int i = 0; i < _players.Count; i++)
+        {
+            if(_players[i].Socket==socket)
+                result=i;
+        }
+        return result;
     }
 }

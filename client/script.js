@@ -1,6 +1,5 @@
 const ws = new WebSocket("ws://127.0.0.1:9000/Board");   //server da contattare
 var idclient=0;
-var name="";
 
 ws.addEventListener("open", () =>{  //evento di connessione
     console.log("we are connected!");
@@ -20,7 +19,12 @@ ws.addEventListener("message", e =>{  //evento di ricezione messaggio
     else if(e.data.includes("jsonstartcards|"))
     {
         var words = e.data.split('|');
-        giveCards(words[1]);
+        giveCard(words[1]);
+    }
+    else if(e.data.includes("jsonrequestedcard|"))
+    {
+        var words = e.data.split('|');
+        giveCard(words[1]);
     }
 });
 
@@ -43,7 +47,8 @@ function playerReady()
         document.getElementById("playername").className="error";
     else
     {
-        send('|ready|');
+        console.log(document.getElementById("playername").value);
+        send(document.getElementById("playername").value+'|ready|');
         waitPlayers();
     }
 }
@@ -60,19 +65,19 @@ function waitPlayers() {
 function setUpBoard() {
     document.body.style = "background-color:green;";
     var div="<div id='information'>";
-    div+="";
+    div+="<button id='ready' onclick=send(\'|card|\')>request card</button>";
     div+="</div>";
-    var div="<div id='hand'>";
+    div+="<div id='hand'>";
     div+="";
     div+="</div>";
     document.getElementById("table").innerHTML=div;
 }
 
-function giveCards(json) {
+function giveCard(json) {
     jsonObj = JSON.parse(json);
     var img="";
     for (let i = 0; i < jsonObj.cards.length; i++) {
         img += "<img src='"+jsonObj.cards[i].image+"'>";
     }
-    document.getElementById("hand").innerHTML=img;
+    document.getElementById("hand").innerHTML+=img;
 }
