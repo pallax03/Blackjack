@@ -16,6 +16,14 @@ public class Board : WebSocketBehavior
     private static List<Player> _players = new List<Player>();//Players list, with this class i have the full control of the game (name, chat history, score and socket).
     private static NewDeck _jsonNewDeck = new NewDeck();//Deck Obj
     private static DrawCard _jsonDrawCard = new DrawCard();//Drawed Card Obj
+    private static int whosturn=0;
+    private static bool game_started=false;
+    private static int round;
+
+    public void SetDealer()
+    {
+        _players.Add(new Player("dealer", 0));//player 0 is the dealer
+    }
 
     protected override void OnOpen()
     {
@@ -28,6 +36,9 @@ public class Board : WebSocketBehavior
             Context.WebSocket.Close();
         }
         else {
+            if(_clientSockets.Count==0)
+                SetDealer();
+
             _clientSockets.Add(clientN);
             _clientready.Add(false);
             _players.Add(new Player(Context.WebSocket));
@@ -35,42 +46,45 @@ public class Board : WebSocketBehavior
     }
     protected override void OnMessage(MessageEventArgs e)//here, I handle all messages
     {
-        //in order of the initial actions of the game
-        if(e.Data.Contains("|ready|"))//the client put his state on ready
+        if(game_started)
         {
-            int nready=0;//count how many players they have set up --initialization
-            string[] splitted = e.Data.Split("|");
-            Console.WriteLine(e.Data+" nome: "+splitted[0]);
-            _players[FindPlayer(Context.WebSocket)].Initialize(splitted[0], 0);//add other information of the player (name, number of cards in his hand)
-
-            for (int i = 0; i < _clientSockets.Count; i++)//search the correct client socket index
+            if(Context.WebSocket ==_players[whosturn].Socket)
             {
-                if(Context.WebSocket==_clientSockets[i])//set the client ready in the parrarel bool list
-                    _clientready[i]=true;
+                if(e.Data == "|bet|")//the client bet
+                {
 
-                if(_clientready[i]==true)//count how many players they have set up --storage
-                    nready++;
+                }
+                else if(e.Data == "|card|")//the client request a card
+                {
+                    GiveCard(Context.WebSocket);
+                }
+                else if(e.Data == "|dealerscore|")
+                {
+                    
+                }
+
+                whosturn--;//avanza di persona nel turno
+                if(whosturn==0)
+                {
+                    round++;
+                    whosturn=_players.Count-1;
+                    _players[0].Ncards=2;//Scopre la carta del dealer
+                    SendToAll("dealerscore|"+_players[0].Score);//Manda lo score effettivo del dealer
+                }
+                Console.WriteLine("Di chi e' il turno? "+_players[whosturn].Name);
+                WhosNext();
             }
+        }
+        else
+        {
+            if(e.Data.Contains("|ready|"))//the client put his state on ready
+            {
+                string[] splitted = e.Data.Split("|");
+                _players[FindPlayer(Context.WebSocket)].Initialize(splitted[0], 0);//add other information of the player (name, number of cards in his hand)
+                SetReadyState(Context.WebSocket);//Set the player ready
+            }
+        }
 
-            SendToAll($"players|{nready}|{_clientready.Count}");//Send to all client the state of ready players
-            ControlReadyState();//Control if all the players set ready
-        }
-        else if(e.Data == "|bet|")//the client bet
-        {
-
-        }
-        else if(e.Data == "|card|")//the client request a card
-        {
-            GiveCard(Context.WebSocket);
-        }
-        else if(e.Data == "|hit|")//the client ...
-        {
-
-        }
-        else if(e.Data == "|doubledown|")//the client doubledown
-        {
-            
-        }
 
     }
     public void SendToAll(string message)//Send a message to all the clients
@@ -79,6 +93,21 @@ public class Board : WebSocketBehavior
         {
             socket.Send(message);
         }
+    }
+    public void SetReadyState(WebSocket socket)
+    {
+        int nready=0;//count how many players they have set up --initialization
+
+        for (int i = 0; i < _clientSockets.Count; i++)//search the correct client socket index
+        {
+            if(socket==_clientSockets[i])//set the client ready in the parrarel bool list
+                _clientready[i]=true;
+
+            if(_clientready[i]==true)//count how many players they have set up --storage
+                nready++;
+        }
+        SendToAll($"players|{nready}|{_clientready.Count}");//Send to all client the state of ready players
+        ControlReadyState();//Control if all the players set ready
     }
     public void ControlReadyState()
     {
@@ -96,11 +125,11 @@ public class Board : WebSocketBehavior
 
     public void StartGame()//Start the game
     {
+        SendToAll("|start|");
+        round=0;
+        game_started=true;
+        whosturn=_players.Count-1;
         //call deck API
-        for (int i = 0; i < _clientSockets.Count; i++)
-        {
-            _clientSockets[i].Send("|start|");
-        }
         var url = new Uri("https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1");
         using (var client = new HttpClient())//api that set up the deck
         {
@@ -117,7 +146,7 @@ public class Board : WebSocketBehavior
     {
         //call card API
         var url = new Uri($"https://deckofcardsapi.com/api/deck/{_jsonNewDeck.deck_id}/draw/?count=2");
-        for (int i = 0; i < _clientSockets.Count; i++)
+        for (int i = 0; i < _players.Count; i++)
         {
             using (var client = new HttpClient())//api that request 2 cards
             {
@@ -125,14 +154,24 @@ public class Board : WebSocketBehavior
             var getResult = client.GetAsync(url).Result;
             var getResultJson = getResult.Content.ReadAsStringAsync().Result;
             _jsonDrawCard = JsonConvert.DeserializeObject<DrawCard>(getResultJson);//storage the Drawed Card Obj
-            _clientSockets[i].Send("jsonstartcards|"+getResultJson);//Send to the client the json, he need that for visualize the cards (value and image).
+            if(i>0)
+                _players[i].Socket.Send("jsonstartcards|"+getResultJson);//Send to the client the json, he need that for visualize the cards (value and image).
             
             for (int j = 0; j < _jsonDrawCard.Cards.Length; j++)//adds as many cards as the json sends him
                 _players[i].AddCard(_jsonDrawCard.Cards[j].Code,_jsonDrawCard.Cards[j].Image,_jsonDrawCard.Cards[j].Value);
             
+            if(i>0)
+                _players[i].Socket.Send("score|"+_players[i].Score);  
+
             Console.WriteLine($"Name: {_players[i].Name}, Score: "+_players[i].Score);
             }
         }
+        _players[0].Ncards=1;
+        SendToAll("dealerscore|"+_players[0].Score);
+        SendToAll("dealer|"+SharePlayer(0));
+        Console.WriteLine($"Name: {_players[0].Name}, Score: "+_players[0].Score);
+        round++;
+        WhosNext();
     }
 
     public void GiveCard(WebSocket socket)
@@ -146,11 +185,16 @@ public class Board : WebSocketBehavior
         var getResult = client.GetAsync(url).Result;
         var getResultJson = getResult.Content.ReadAsStringAsync().Result;
         _jsonDrawCard = JsonConvert.DeserializeObject<DrawCard>(getResultJson);//storage the Drawed Card Obj
-        socket.Send("jsonrequestedcard|"+getResultJson);//Send to the client the json, he need that for visualize the cards (value and image).
+        _players[playerfound_index].Socket.Send("jsonrequestedcard|"+getResultJson);//Send to the client the json, he need that for visualize the cards (value and image).
         _players[playerfound_index].AddCard(_jsonDrawCard.Cards[0].Code,_jsonDrawCard.Cards[0].Image,_jsonDrawCard.Cards[0].Value);//adds as many cards as the json sends him
-        
+        _players[playerfound_index].Socket.Send("score|"+_players[playerfound_index].Score);
         Console.WriteLine($"Name: {_players[playerfound_index].Name}, Score: "+_players[playerfound_index].Score);
         }
+    }
+
+    public void WhosNext()
+    {
+        _players[whosturn].Socket.Send("yourturn|");
     }
 
     public int FindPlayer(WebSocket socket)//search for a player given the socket
@@ -162,5 +206,20 @@ public class Board : WebSocketBehavior
                 result=i;
         }
         return result;
+    }
+    public string SharePlayer(int what_player)//make the json to share information of clients
+    {
+        var _jsonPlayer="";
+        if(_players[what_player].Ncards==1)//Hide the second card of the dealer if he got only 1 card
+        {
+            var tmp = _players[what_player].Cards[_players[what_player].Ncards];
+            _players[what_player].Cards[_players[what_player].Ncards]=null;
+            _jsonPlayer = JsonConvert.SerializeObject(_players[what_player]);//convert the player class to a json
+            _players[what_player].Cards[_players[what_player].Ncards] = tmp;
+        }
+        else
+            _jsonPlayer = JsonConvert.SerializeObject(_players[what_player]);//convert the player class to a json
+
+        return _jsonPlayer;
     }
 }

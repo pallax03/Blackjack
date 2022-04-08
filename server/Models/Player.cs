@@ -28,8 +28,6 @@ class Player
                 }
                 else
                 _score += Convert.ToInt32(Cards[i].Value);
-
-                Console.WriteLine($"carta {i+1}: "+Cards[i].Value);
             }
             while(ace>0)
             {
@@ -54,7 +52,13 @@ class Player
         public string Value { get; set; }
     }
 
-    //Constructor
+    //Constructor Dealer
+    public Player(string _name, int _ncards)
+    {   
+        Name = _name;
+        Ncards= _ncards;
+    }
+    //Constructor Player
     public Player(WebSocket _socket)
     {   
         Socket = _socket;

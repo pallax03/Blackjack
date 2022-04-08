@@ -26,6 +26,16 @@ ws.addEventListener("message", e =>{  //evento di ricezione messaggio
         var words = e.data.split('|');
         giveCard(words[1]);
     }
+    else if(e.data.includes("score|"))
+    {
+        var words = e.data.split('|');
+        giveScore(words[1]);
+    }
+    else if(e.data.includes("dealerscore|"))
+    {
+        var words = e.data.split('|');
+        giveDealerScore(words[1]);
+    }
 });
 
 function send(str){   //Invio messaggio al server
@@ -80,4 +90,11 @@ function giveCard(json) {
         img += "<img src='"+jsonObj.cards[i].image+"'>";
     }
     document.getElementById("hand").innerHTML+=img;
+}
+
+function giveDealerScore(score) {
+    document.getElementById("information").innerHTML+='Dealer score: '+score;
+}
+function giveScore(score) {
+    document.getElementById("information").innerHTML+='Your score: '+score;
 }
