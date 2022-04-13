@@ -52,7 +52,7 @@ public class Board : WebSocketBehavior
             {
                 if(e.Data == "|bet|")//the client bet
                 {
-
+                    
                 }
                 else if(e.Data == "|card|")//the client request a card
                 {

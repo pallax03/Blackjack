@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Client - Blackjack</title>
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="./css/style.css">
+    </head>
+    <body>
+        <div class="card">
+            <div class="corner left">
+                <input class="nickname" type="text" id="nick" placeholder="nickname" autofocus>
+                <span class="suit"></span>
+            </div>
+            <div class="center">
+                <input type="button" value="Start Game" id="btnStart" onclick="checkNickname()">
+                <span class="suit"></span>
+            </div>
+            <div class="corner right">
+                <input class="nickname" type="text" id="cloneNick" placeholder="Nickname" readonly>
+                <span class="suit"></span>
+            </div>
+        </div>
+        <div class="table">
+
+        </div>
+        <!-- JS -->
+        <script src="./script.js">
+        </script>
+    </body>
+</html>

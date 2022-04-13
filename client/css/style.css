@@ -1,0 +1,107 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+* {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  font-family: 'Playfair', serif;
+  outline: none;
+}
+
+body, body .card, body .card .center {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+body {
+  min-height: 100vh;
+  background: #010203;
+  padding: 10px;
+}
+
+body .error{
+  font-weight: bold;
+  z-index: 1;
+  color: white;
+  font-size: 24px;
+}
+
+body .card {
+  
+  position: relative;
+  background: #f1f2f3;
+  border-radius: 25px;
+  width: 50vh;
+  height: 65vh;
+}
+
+body .card input {
+  background: none;
+  border: none;
+  text-transform: capitalize;
+  font-size: 18px;
+}
+
+body .card .corner {
+  margin: 30px;
+  position: absolute;
+  text-align: center;
+  width: 15%;
+}
+
+body .card .corner .suit {
+  font-size: 20px;
+}
+
+body .card .corner.left {
+  top: 0;
+  left: 0;
+}
+
+body .card .corner.right {
+  bottom: 0;
+  right: 0;
+  -webkit-transform: rotate(-180deg);
+          transform: rotate(-180deg);
+}
+
+body .card .center {
+  position: relative;
+}
+
+body .card .center .suit {
+  position: absolute;
+  font-size: 400px;
+}
+
+body .card .center #btnStart {
+  font-weight: bold;
+  z-index: 1;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+body .wait{
+  display: flex;
+  font-weight: bold;
+  padding: 60px;
+  border-radius: 6px;
+  z-index: 1;
+  color: white;
+  border: 4px dashed white;
+  font-size: 24px;
+  flex-direction: column;
+  align-items: center;
+}
+#waitingplayer{margin-top: 20px;}
+
+
+/*# sourceMappingURL=style.css.map */

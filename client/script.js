@@ -1,9 +1,10 @@
+document.getElementsByClassName('card')[0].style.display = "none";
 const ws = new WebSocket("ws://127.0.0.1:9000/Board");   //server da contattare
-var idclient=0;
+var idClient=0;
+var nickname="";
 
 ws.addEventListener("open", () =>{  //evento di connessione
-    console.log("we are connected!");
-    setUpStart();
+    Start()
 });
 
 ws.addEventListener("message", e =>{  //evento di ricezione messaggio
@@ -14,87 +15,126 @@ ws.addEventListener("message", e =>{  //evento di ricezione messaggio
     {
         var words = e.data.split('|');
         var playersready = words[1]+"/"+words[2];
-        document.getElementById("waitingnplayer").innerHTML=playersready;
+        document.getElementById("waitingplayer").innerHTML=playersready;
     }
-    else if(e.data.includes("jsonstartcards|"))
+    else if(e.data.includes("dealercards|"))
     {
         var words = e.data.split('|');
-        giveCard(words[1]);
-    }
-    else if(e.data.includes("jsonrequestedcard|"))
-    {
-        var words = e.data.split('|');
-        giveCard(words[1]);
-    }
-    else if(e.data.includes("score|"))
-    {
-        var words = e.data.split('|');
-        giveScore(words[1]);
+        giveCards(words[1], 0);
     }
     else if(e.data.includes("dealerscore|"))
     {
         var words = e.data.split('|');
-        giveDealerScore(words[1]);
+        giveScore(words[1], 0);
     }
+    else if(e.data.includes("jsonstartcards|"))
+    {
+        var words = e.data.split('|');
+        giveCards(words[1], 1);
+    }
+    else if(e.data.includes("jsonrequestedcard|"))
+    {
+        var words = e.data.split('|');
+        giveCards(words[1], 1);
+    }
+    else if(e.data.includes("score|"))
+    {
+        var words = e.data.split('|');
+        giveScore(words[1], 1);
+    }
+
 });
 
+//clona il nickname
+document.getElementById("nick").addEventListener('keyup', () => {
+    document.getElementById("cloneNick").value = document.getElementById("nick").value;
+})
+//passi una stringa mette la prima lettera MAIUSCOLA
+function capitalize(str) {
+    const lower = str.toLowerCase();
+    return str.charAt(0).toUpperCase() + lower.slice(1);
+}
+    
 function send(str){   //Invio messaggio al server
     ws.send(str);
 }
 
+function Start()
+{
+    document.getElementsByClassName('card')[0].style.display = "";
+    ClientSeed();
+}
+//Randomize seed
+var seed="";
+function ClientSeed() {
+    var suit = document.getElementsByClassName("suit");
+    if((Math.floor(Math.random() * 11)%2)==0)
+        seed="♠";//♥♦♣♠
+    else
+        seed="♣";//♥♦♣♠
 
-function setUpStart() {
-    var div="<div id='start' class='start'>";
-    div+="<input type='text' name='name' id='playername'>";
-    div+="<button id='ready' onclick='playerReady()'>Are you ready?</button>";
-    div+="</div>";
-    document.getElementById("table").innerHTML=div;
+    for(var i = 0; i < suit.length; i++)
+    {
+        suit[i].innerHTML = seed;
+    }
 }
 
-function playerReady()
+function checkNickname()
 {
-    if(document.getElementById("playername").value=="")
-        document.getElementById("playername").className="error";
+    if(document.getElementById("nick").value == "")
+    {
+        //document.body.style.background = "#eb2225";
+
+        var nick = document.getElementsByClassName("nickname");
+
+        for(var i = 0; i < nick.length; i++)
+        {
+            nick[i].style.color = "#eb2225";
+        }
+
+        var suit = document.getElementsByClassName("suit");
+
+        if((Math.floor(Math.random() * 11)%2)==0)
+            seed="♦";//♥♦♣♠
+        else
+            seed="♥";//♥♦♣♠
+
+        for(var i = 0; i < suit.length; i++)
+        {
+            suit[i].innerHTML = seed;
+            suit[i].style.color = "#eb2225";
+        }
+    }
     else
     {
-        console.log(document.getElementById("playername").value);
-        send(document.getElementById("playername").value+'|ready|');
+        document.getElementsByClassName('card')[0].style.display="none";
+        nickname = document.getElementById("nick").value;
+        nickname = capitalize(nickname);
+        send(nickname+'|ready|');
         waitPlayers();
     }
 }
 
 function waitPlayers() {
-    var div="<div id='waiting'>";
-    div+="<span class='waiting'>waiting for players who put it ready</span>";
-    div+="</br><span id='waitingnplayer'></span>";
-    div+="</div>";
-
-    document.getElementById("table").innerHTML=div;
+    document.getElementsByClassName('table')[0].innerHTML = '<div class="wait"><span class="waiting">waiting for players who put it ready</span><span id="waitingplayer">x/n</span></div>';
 }
 
 function setUpBoard() {
-    document.body.style = "background-color:green;";
-    var div="<div id='information'>";
-    div+="<button id='ready' onclick=send(\'|card|\')>request card</button>";
-    div+="</div>";
-    div+="<div id='hand'>";
-    div+="";
-    div+="</div>";
-    document.getElementById("table").innerHTML=div;
+    document.body.style.background = "#35654d";
+    document.getElementsByClassName('table')[0].innerHTML='<div class="dealer"><div class="hand"></div><div class="score"></div></div><div class="player"><div class="hand"></div><div class="score"></div></div>';
 }
 
-function giveCard(json) {
+function giveCards(json, who) {
     jsonObj = JSON.parse(json);
     var img="";
     for (let i = 0; i < jsonObj.cards.length; i++) {
         img += "<img src='"+jsonObj.cards[i].image+"'>";
     }
-    document.getElementById("hand").innerHTML+=img;
+    //who can be: 0 = dealer, 1 = player
+    document.getElementsByClassName('hand')[who].innerHTML=img;
+}
+function giveScore(txt, who) {
+    //who can be: 0 = dealer, 1 = player
+    document.getElementsByClassName('score')[who].innerHTML=txt;
 }
 
-function giveDealerScore(score) {
-    document.getElementById("information").innerHTML+='Dealer score: '+score;
-}
-function giveScore(score) {
-    document.getElementById("information").innerHTML+='Your score: '+score;
-}
