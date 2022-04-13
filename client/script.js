@@ -2,6 +2,7 @@ document.getElementsByClassName('card')[0].style.display = "none";
 const ws = new WebSocket("ws://127.0.0.1:9000/Board");   //server da contattare
 var idClient=0;
 var nickname="";
+var words = "";//words[1]: json
 
 ws.addEventListener("open", () =>{  //evento di connessione
     Start()
@@ -13,34 +14,29 @@ ws.addEventListener("message", e =>{  //evento di ricezione messaggio
         setUpBoard();
     else if(e.data.includes("players|"))
     {
-        var words = e.data.split('|');
-        var playersready = words[1]+"/"+words[2];
+        words = e.data.split('|');
+        var playersready = words[1]+"/"+words[2];// in only this case words[1]: n players, words[2]: total players
         document.getElementById("waitingplayer").innerHTML=playersready;
-    }
-    else if(e.data.includes("dealercards|"))
-    {
-        var words = e.data.split('|');
-        giveCards(words[1], 0);
-    }
-    else if(e.data.includes("dealerscore|"))
-    {
-        var words = e.data.split('|');
-        giveScore(words[1], 0);
     }
     else if(e.data.includes("jsonstartcards|"))
     {
-        var words = e.data.split('|');
+        words = e.data.split('|');
         giveCards(words[1], 1);
     }
     else if(e.data.includes("jsonrequestedcard|"))
     {
-        var words = e.data.split('|');
+        words = e.data.split('|');
         giveCards(words[1], 1);
     }
     else if(e.data.includes("score|"))
     {
-        var words = e.data.split('|');
+        words = e.data.split('|');
         giveScore(words[1], 1);
+    }
+    else if(e.data.includes("dealer|"))
+    {
+        words = e.data.split('|');
+        giveDealer(words[1]);
     }
 
 });
@@ -124,12 +120,16 @@ function setUpBoard() {
     document.getElementsByClassName('table')[0].innerHTML='<div class="dealer"><div class="hand"></div><div class="score"></div></div><div class="player"><div class="hand"></div><div class="score"></div></div>';
 }
 
-function giveCards(json, who) {
+function giveCardsJson(json, who) {
     jsonObj = JSON.parse(json);
     var img="";
     for (let i = 0; i < jsonObj.cards.length; i++) {
         img += "<img src='"+jsonObj.cards[i].image+"'>";
     }
+    return img;
+}
+
+function giveCards(img, who) {
     //who can be: 0 = dealer, 1 = player
     document.getElementsByClassName('hand')[who].innerHTML=img;
 }
@@ -138,3 +138,13 @@ function giveScore(txt, who) {
     document.getElementsByClassName('score')[who].innerHTML=txt;
 }
 
+function giveDealer()
+{
+    jsonObj = JSON.parse(json);
+    var img="";
+    for (let i = 0; i < jsonObj.Ncards; i++) {
+        img += "<img src='"+jsonObj.Cards[i].image+"'>";
+    }
+    giveCards(img, 0);
+    giveScore(jsonObj.Score, 0);
+}

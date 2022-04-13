@@ -18,7 +18,8 @@ public class Board : WebSocketBehavior
     private static DrawCard _jsonDrawCard = new DrawCard();//Drawed Card Obj
     private static int whosturn=0;
     private static bool game_started=false;
-    private static int round;
+
+    private static string backcard = "https://deckofcardsapi.com/static/img/back.png";
 
     public void SetDealer()
     {
@@ -56,23 +57,18 @@ public class Board : WebSocketBehavior
                 }
                 else if(e.Data == "|card|")//the client request a card
                 {
-                    GiveCard(Context.WebSocket);
+                    GiveCard(FindPlayer(Context.WebSocket));
                 }
-                else if(e.Data == "|dealerscore|")
+                else if(e.Data == "|stop|")
                 {
-                    
+                    whosturn--;//avanza di persona nel turno
+                    if(whosturn==0)
+                        DealerTurn();
+                    else
+                        WhosNext();
                 }
+                
 
-                whosturn--;//avanza di persona nel turno
-                if(whosturn==0)
-                {
-                    round++;
-                    whosturn=_players.Count-1;
-                    _players[0].Ncards=2;//Scopre la carta del dealer
-                    SendToAll("dealerscore|"+_players[0].Score);//Manda lo score effettivo del dealer
-                }
-                Console.WriteLine("Di chi e' il turno? "+_players[whosturn].Name);
-                WhosNext();
             }
         }
         else
@@ -126,7 +122,6 @@ public class Board : WebSocketBehavior
     public void StartGame()//Start the game
     {
         SendToAll("|start|");
-        round=0;
         game_started=true;
         whosturn=_players.Count-1;
         //call deck API
@@ -170,13 +165,11 @@ public class Board : WebSocketBehavior
         SendToAll("dealerscore|"+_players[0].Score);
         SendToAll("dealer|"+SharePlayer(0));
         Console.WriteLine($"Name: {_players[0].Name}, Score: "+_players[0].Score);
-        round++;
         WhosNext();
     }
 
-    public void GiveCard(WebSocket socket)
+    public void GiveCard(int who)
     {
-        int playerfound_index = FindPlayer(socket);
         //call card API
         var url = new Uri($"https://deckofcardsapi.com/api/deck/{_jsonNewDeck.deck_id}/draw/?count=1");
         using (var client = new HttpClient())//api that request a card
@@ -185,10 +178,10 @@ public class Board : WebSocketBehavior
         var getResult = client.GetAsync(url).Result;
         var getResultJson = getResult.Content.ReadAsStringAsync().Result;
         _jsonDrawCard = JsonConvert.DeserializeObject<DrawCard>(getResultJson);//storage the Drawed Card Obj
-        _players[playerfound_index].Socket.Send("jsonrequestedcard|"+getResultJson);//Send to the client the json, he need that for visualize the cards (value and image).
-        _players[playerfound_index].AddCard(_jsonDrawCard.Cards[0].Code,_jsonDrawCard.Cards[0].Image,_jsonDrawCard.Cards[0].Value);//adds as many cards as the json sends him
-        _players[playerfound_index].Socket.Send("score|"+_players[playerfound_index].Score);
-        Console.WriteLine($"Name: {_players[playerfound_index].Name}, Score: "+_players[playerfound_index].Score);
+        _players[who].Socket.Send("jsonrequestedcard|"+getResultJson);//Send to the client the json, he need that for visualize the cards (value and image).
+        _players[who].AddCard(_jsonDrawCard.Cards[0].Code,_jsonDrawCard.Cards[0].Image,_jsonDrawCard.Cards[0].Value);//adds as many cards as the json sends him
+        _players[who].Socket.Send("score|"+_players[who].Score);
+        Console.WriteLine($"Name: {_players[who].Name}, Score: "+_players[who].Score);
         }
     }
 
@@ -207,19 +200,30 @@ public class Board : WebSocketBehavior
         }
         return result;
     }
-    public string SharePlayer(int what_player)//make the json to share information of clients
+    public string SharePlayer(int who)//make the json to share information of clients
     {
         var _jsonPlayer="";
-        if(_players[what_player].Ncards==1)//Hide the second card of the dealer if he got only 1 card
+        if(_players[who].Ncards==1)//Hide the second card of the dealer if he got only 1 card
         {
-            var tmp = _players[what_player].Cards[_players[what_player].Ncards];
-            _players[what_player].Cards[_players[what_player].Ncards]=null;
-            _jsonPlayer = JsonConvert.SerializeObject(_players[what_player]);//convert the player class to a json
-            _players[what_player].Cards[_players[what_player].Ncards] = tmp;
+            var tmp = _players[who].Cards[_players[who].Ncards];
+            _players[who].Cards[_players[who].Ncards]=null;
+            _jsonPlayer = JsonConvert.SerializeObject(_players[who]);//convert the player class to a json
+            _players[who].Cards[_players[who].Ncards] = tmp;
         }
         else
-            _jsonPlayer = JsonConvert.SerializeObject(_players[what_player]);//convert the player class to a json
+            _jsonPlayer = JsonConvert.SerializeObject(_players[who]);//convert the player class to a json
 
+        Console.WriteLine(_jsonPlayer);
         return _jsonPlayer;
+    }
+    public void DealerTurn()
+    {
+        _players[0].Ncards=2;//Scopre la carta del dealer
+
+        //richiede un altra carta il dealer se il punteggio non supera 16
+        while (_players[0].Score<=16)
+            GiveCard(0);
+
+        SendToAll("dealer|"+SharePlayer(0));//Manda tutto il dealer
     }
 }
