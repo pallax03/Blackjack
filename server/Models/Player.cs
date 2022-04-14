@@ -2,13 +2,13 @@ using Newtonsoft.Json;
 using WebSocketSharp;
 using WebSocketSharp.Server;
 
-class Player
+public class Player
 {
     //Property
     public int Id { get; set; }
     public string Name { get; set; }
     public WebSocket Socket { get; set; }
-    public int Bet { get; set; }
+    public double Bet { get; set; } = 0;
     public int Ncards { get; set; }
     public Card[] Cards { get; set; } = new Card[10];
     private int _score;
@@ -43,7 +43,7 @@ class Player
         }
       set { _score = 0; }
     }
-    public bool Win { get; set; }
+    public bool? Win { get; set; }
 
 
     //Class card
@@ -69,10 +69,11 @@ class Player
     }
 
     //Methods
-    public void Initialize( string _name, int _ncards)
+    public void Initialize( string _name, int _ncards, double _bet)
     {
         Name = _name;
         Ncards= _ncards;
+        Bet = _bet;
     }
 
     public void AddCard(string _c, Uri _i, string _v)

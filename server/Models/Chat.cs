@@ -5,33 +5,39 @@ public class Chat : WebSocketBehavior
 {
     //list of websocket ~ 1 websocket = 1 client
     private static List<WebSocket> _clientSockets = new List<WebSocket>();
-    
-    //number of client connected
-    private static int count;
-
     protected override void OnOpen()
     {
-        WebSocket clientN = Context.WebSocket;
-        count = _clientSockets.Count;
-        Console.WriteLine("Richiesta connessione da client: " + (count + 1 ).ToString());
         //it only accepts a maximum of 7 clients
-        if (count > 8)
+        if (_clientSockets.Count > 6)
         {
-            Console.WriteLine("Chiusa connessione con client: " + (count + 1).ToString());
+            Console.WriteLine("Chiusa connessione con client: " + (_clientSockets.Count + 1).ToString()+ "(chat)");
             Context.WebSocket.Close();
         }
-        else {
-            _clientSockets.Add(clientN);
-            clientN.Send($"idclient|{_clientSockets.Count}");
+        else 
+        {
+            _clientSockets.Add(Context.WebSocket);
         }
     }
     protected override void OnMessage(MessageEventArgs e)
     {
         //invio ad un client i messaggi dell'altro
-        Console.WriteLine("Received message from client: " + e.Data);
+        int id = FindSocket(Context.WebSocket);
+        SendToAll(id+"|"+e.Data+"|"+Board._players[id].Name);
+    }
+    public int FindSocket(WebSocket socket)//Send a message to all the clients
+    {
         for (int i = 0; i < _clientSockets.Count; i++)
         {
-            _clientSockets[i].Send(e.Data);
+            if(_clientSockets[i]==socket)
+                return i+1;
+        }
+        return 0;
+    }
+    public void SendToAll(string message)//Send a message to all the clients
+    {
+        foreach (var socket in _clientSockets)
+        {
+            socket.Send(message);
         }
     }
 }

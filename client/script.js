@@ -1,18 +1,29 @@
+//start function
 document.getElementsByClassName('card')[0].style.display = "none";
-const ws = new WebSocket("ws://127.0.0.1:9000/Board");   //server da contattare
+
+//  game
+const wsboard = new WebSocket("ws://127.0.0.1:9000/Board");   //server da contattare per giocare
 var idClient=0;
 var totalplayers=0;
 var nickname="";
+var bet="0";
 var words = "";//words[1]: json
 
-ws.addEventListener("open", () =>{  //evento di connessione
-    Start()
+wsboard.addEventListener("open", () =>{  //evento di connessione
+    start();
 });
 
-ws.addEventListener("message", e =>{  //evento di ricezione messaggio
+wsboard.addEventListener("message", e =>{  //evento di ricezione messaggio
     console.log(e.data);
-    if(e.data=="|start|")
+    if(e.data.includes("idClient|"))
+    {
+        words = e.data.split('|');
+        idClient=words[1];
+    } 
+    else if(e.data=="|start|")
+    {
         setUpBoard();
+    } 
     else if(e.data.includes("numberofplayers|"))
     {
         words = e.data.split('|');totalplayers=words[2];
@@ -24,16 +35,20 @@ ws.addEventListener("message", e =>{  //evento di ricezione messaggio
         words = e.data.split('|');
         givePlayer(words[1]);
     }
-    else if(e.data.includes("|yourturn|"))
+    else if(e.data=="|yourturn|")
     {
         setCommands();
     }
-    else if(e.data.includes("|stop|"))
+    else if(e.data=="|stop|")
     {
         document.getElementsByClassName('commands')[0].innerHTML='';
     }
-
-
+    else if(e.data=="|newgame|")
+    {
+        document.getElementsByClassName('card')[0].style.display = '';
+        document.getElementsByClassName('card')[0].style.opacity = '0.5';
+        document.getElementById('nick').setAttribute("readonly", true);
+    }
 });
 
 //clona il nickname
@@ -47,17 +62,17 @@ function capitalize(str) {
 }
     
 function send(str){   //Invio messaggio al server
-    ws.send(str);
+    wsboard.send(str);
 }
 
-function Start()
+function start()
 {
     document.getElementsByClassName('card')[0].style.display = "";
-    ClientSeed();
+    clientSeed();
 }
 //Randomize seed
 var seed="";
-function ClientSeed() {
+function clientSeed() {
     var suit = document.getElementsByClassName("suit");
     if((Math.floor(Math.random() * 11)%2)==0)
         seed="♠";//♥♦♣♠
@@ -101,8 +116,11 @@ function checkNickname()
         document.getElementsByClassName('card')[0].style.display="none";
         nickname = document.getElementById("nick").value;
         nickname = capitalize(nickname);
-        send(nickname+'|ready|');
+        send(nickname+'|ready|'+bet);
         waitPlayers();
+        //  chat
+        startChat();
+        
     }
 }
 
@@ -133,3 +151,28 @@ function givePlayer(json)
     document.getElementsByClassName('hand')[jsonObj.Id].innerHTML=img;
     document.getElementsByClassName('score')[jsonObj.Id].innerHTML=jsonObj.Score;
 }
+
+//chat
+const wschat = new WebSocket("ws://127.0.0.1:9000/Chat");   //server da contattare per giocare
+
+wschat.addEventListener("open", () =>{  //evento di connessione chat
+    
+});
+
+wschat.addEventListener("message", e =>{  //evento di ricezione messaggio chat
+    console.log(e.data);
+    words = e.data.split('|');
+    if(words[0]==idClient)
+        words[2] = "You";
+
+    document.getElementById("LiveChat").innerHTML += words[2]+": "+words[1];
+});
+
+function chat(){   //Invio messaggio al server
+    wschat.send(document.getElementById('text').value);
+}
+
+function startChat() {
+    document.getElementsByClassName('chat')[0].innerHTML ='Text: <input type="text" id="text"><input type="button" value=">" id="btnChat" onclick=chat()><span style="background-color: lightgreen;flex: auto;"><p>Chat di gruppo: <div id="LiveChat"></div></p></span>';
+}
+//------------------
