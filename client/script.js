@@ -1,6 +1,7 @@
 document.getElementsByClassName('card')[0].style.display = "none";
 const ws = new WebSocket("ws://127.0.0.1:9000/Board");   //server da contattare
 var idClient=0;
+var totalplayers=0;
 var nickname="";
 var words = "";//words[1]: json
 
@@ -12,32 +13,26 @@ ws.addEventListener("message", e =>{  //evento di ricezione messaggio
     console.log(e.data);
     if(e.data=="|start|")
         setUpBoard();
-    else if(e.data.includes("players|"))
+    else if(e.data.includes("numberofplayers|"))
     {
-        words = e.data.split('|');
+        words = e.data.split('|');totalplayers=words[2];
         var playersready = words[1]+"/"+words[2];// in only this case words[1]: n players, words[2]: total players
         document.getElementById("waitingplayer").innerHTML=playersready;
     }
-    else if(e.data.includes("jsonstartcards|"))
+    else if(e.data.includes("player|"))
     {
         words = e.data.split('|');
-        giveCards(words[1], 1);
+        givePlayer(words[1]);
     }
-    else if(e.data.includes("jsonrequestedcard|"))
+    else if(e.data.includes("|yourturn|"))
     {
-        words = e.data.split('|');
-        giveCards(words[1], 1);
+        setCommands();
     }
-    else if(e.data.includes("score|"))
+    else if(e.data.includes("|stop|"))
     {
-        words = e.data.split('|');
-        giveScore(words[1], 1);
+        document.getElementsByClassName('commands')[0].innerHTML='';
     }
-    else if(e.data.includes("dealer|"))
-    {
-        words = e.data.split('|');
-        giveDealer(words[1]);
-    }
+
 
 });
 
@@ -117,34 +112,24 @@ function waitPlayers() {
 
 function setUpBoard() {
     document.body.style.background = "#35654d";
-    document.getElementsByClassName('table')[0].innerHTML='<div class="dealer"><div class="hand"></div><div class="score"></div></div><div class="player"><div class="hand"></div><div class="score"></div></div>';
+    var table = '<div class="dealer"><div class="hand"></div><div class="score"></div></div>';//dealer
+    for (let index = 0; index<totalplayers; index++)
+        table+='<div class="player"><div class="hand"></div><div class="score"></div></div>';
+
+    document.getElementsByClassName('table')[0].innerHTML=table;
 }
 
-function giveCardsJson(json, who) {
-    jsonObj = JSON.parse(json);
-    var img="";
-    for (let i = 0; i < jsonObj.cards.length; i++) {
-        img += "<img src='"+jsonObj.cards[i].image+"'>";
-    }
-    return img;
+function setCommands() {
+    document.getElementsByClassName('commands')[0].innerHTML='<div class="???"><input type="button" value="Request Card" id="btnCard" onclick=send(\'|card|\')></div><div class="???"><input type="button" value="Stop" id="btnStop" onclick=send(\'|stop|\')></div>';
 }
 
-function giveCards(img, who) {
-    //who can be: 0 = dealer, 1 = player
-    document.getElementsByClassName('hand')[who].innerHTML=img;
-}
-function giveScore(txt, who) {
-    //who can be: 0 = dealer, 1 = player
-    document.getElementsByClassName('score')[who].innerHTML=txt;
-}
-
-function giveDealer()
+function givePlayer(json)
 {
     jsonObj = JSON.parse(json);
     var img="";
     for (let i = 0; i < jsonObj.Ncards; i++) {
-        img += "<img src='"+jsonObj.Cards[i].image+"'>";
+        img += "<img src='"+jsonObj.Cards[i].Image+"'>";
     }
-    giveCards(img, 0);
-    giveScore(jsonObj.Score, 0);
+    document.getElementsByClassName('hand')[jsonObj.Id].innerHTML=img;
+    document.getElementsByClassName('score')[jsonObj.Id].innerHTML=jsonObj.Score;
 }

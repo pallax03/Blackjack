@@ -5,8 +5,10 @@ using WebSocketSharp.Server;
 class Player
 {
     //Property
+    public int Id { get; set; }
     public string Name { get; set; }
     public WebSocket Socket { get; set; }
+    public int Bet { get; set; }
     public int Ncards { get; set; }
     public Card[] Cards { get; set; } = new Card[10];
     private int _score;
@@ -24,6 +26,7 @@ class Player
                 }
                 else if(Cards[i].Value == "ACE")
                 {
+                    _score+=11;
                     ace+=1;
                 }
                 else
@@ -31,10 +34,8 @@ class Player
             }
             while(ace>0)
             {
-                if(_score+11>21)
-                    _score+=1;
-                else
-                    _score+=11;
+                if(_score>21)
+                    _score-=10;
                 ace--;
             }
 
@@ -42,6 +43,7 @@ class Player
         }
       set { _score = 0; }
     }
+    public bool Win { get; set; }
 
 
     //Class card
@@ -53,19 +55,21 @@ class Player
     }
 
     //Constructor Dealer
-    public Player(string _name, int _ncards)
+    public Player(int _id, string _name, int _ncards)
     {   
+        Id = _id;
         Name = _name;
         Ncards= _ncards;
     }
     //Constructor Player
-    public Player(WebSocket _socket)
+    public Player(int _id,WebSocket _socket)
     {   
+        Id = _id;
         Socket = _socket;
     }
 
     //Methods
-    public void Initialize(string _name, int _ncards)
+    public void Initialize( string _name, int _ncards)
     {
         Name = _name;
         Ncards= _ncards;
