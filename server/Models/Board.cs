@@ -48,6 +48,11 @@ public class Board : WebSocketBehavior
     {
         if(game_started)
         {
+            if(e.Data.Contains("|ready|"))//the client put his state on ready
+            {
+                string[] splitted = e.Data.Split("|");
+                _players[FindPlayer(Context.WebSocket)].Initialize(splitted[0], 0, Convert.ToDouble(splitted[2]));//add other information of the player (name, number of cards in his hand)
+            }
             if(Context.WebSocket ==_players[whosturn].Socket)
             {
                 if(e.Data == "|bet|")//the client bet
@@ -60,7 +65,7 @@ public class Board : WebSocketBehavior
                     if(_players[whosturn].Score>=21)
                         GoNext();
                 }
-                else if(e.Data == "|stop|")
+                else if(e.Data == "|stop|")//the client stop his turn
                 {
                     GoNext();
                 }
@@ -117,6 +122,9 @@ public class Board : WebSocketBehavior
 
     public void StartGame()//Start the game
     {
+        for (int i = 0; i < _clientready.Count; i++)//Reset Ready State
+            _clientready[i]=false;
+
         Console.WriteLine("\nGAME START");
         SendToAll("|start|");
         game_started=true;
@@ -321,9 +329,6 @@ public class Board : WebSocketBehavior
 
             _players[i].Ncards = 0;
             _players[i].Win = null;
-
-            if(i!=_players.Count-1)
-                _clientready[i]=false;
         }
         Console.WriteLine("\n-------------------");
     }

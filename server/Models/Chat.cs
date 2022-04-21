@@ -20,11 +20,10 @@ public class Chat : WebSocketBehavior
     }
     protected override void OnMessage(MessageEventArgs e)
     {
-        //invio ad un client i messaggi dell'altro
         int id = FindSocket(Context.WebSocket);
         SendToAll(id+"|"+e.Data+"|"+Board._players[id].Name);
     }
-    public int FindSocket(WebSocket socket)//Send a message to all the clients
+    public int FindSocket(WebSocket socket)
     {
         for (int i = 0; i < _clientSockets.Count; i++)
         {
@@ -33,7 +32,7 @@ public class Chat : WebSocketBehavior
         }
         return 0;
     }
-    public void SendToAll(string message)//Send a message to all the clients
+    public void SendToAll(string message)
     {
         foreach (var socket in _clientSockets)
         {

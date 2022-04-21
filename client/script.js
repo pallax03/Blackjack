@@ -46,8 +46,11 @@ wsboard.addEventListener("message", e =>{  //evento di ricezione messaggio
     else if(e.data=="|newgame|")
     {
         document.getElementsByClassName('card')[0].style.display = '';
-        document.getElementsByClassName('card')[0].style.opacity = '0.5';
-        document.getElementById('nick').setAttribute("readonly", true);
+        if(nickname!="")
+        {
+            document.getElementsByClassName('card')[0].style.opacity = '0.5';
+            document.getElementById('nick').setAttribute("readonly", true);
+        } 
     }
 });
 
