@@ -11,33 +11,36 @@
     </head>
     <body>
         <div class="card">
-            <div class="corner left">
-                <input class="nickname" type="text" id="nick" placeholder="nickname" autofocus>
+            <div class="corner" id="left">
+                <input class="nickname" type="text" id="nick" placeholder="nickname" >
                 <span class="suit"></span>
             </div>
             <div class="center">
-                <input type="button" value="Start Game" id="btnStart" onclick="checkNickname()">
+                <input type="button" value="Start Game" onclick="startGame()">
                 <span class="suit"></span>
             </div>
-            <div class="corner right">
-                <input class="nickname" type="text" id="cloneNick" placeholder="Nickname" readonly>
+            <div class="corner" id="right">
+                <input class="nickname" type="text" id="cloneNick" placeholder="nickname" readonly>
                 <span class="suit"></span>
             </div>
         </div>
-        <div class="table">
-            
-        </div>
+        <div class="waiting">
+			<h1>Waiting for players</h1>
+			<span id="counter"></span>
+		</div>
+		<div class="board">
+			
+		</div>
         <div class="commands">
             
         </div>
-        <div class="chat" style="display: flex;">
-            
-        </div>
-        <div class="footer">
-            <div class="money">
-
-            </div>
-        </div>
+		<div class="chat">
+			<div id="history"></div>
+			<div class="msgDiv">
+				<input type="text" id="msg" placeholder="Message" />
+				<input type="button" id="btnSend" value="➤" onclick="chat()" />
+			</div>
+		</div>
         <!-- JS -->
         <script src="./script.js">
         </script>

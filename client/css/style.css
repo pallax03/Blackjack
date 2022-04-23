@@ -2,28 +2,44 @@
 * {
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
-  padding: 0;
+  font-family: 'Playfair Display', serif;
   margin: 0;
-  font-family: 'Playfair', serif;
   outline: none;
+  padding: 0;
 }
 
-body, body .card, body .card .center {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+* ::-webkit-input-placeholder {
+  color: #c1c2c3;
+}
+
+* :-ms-input-placeholder {
+  color: #c1c2c3;
+}
+
+* ::-ms-input-placeholder {
+  color: #c1c2c3;
+}
+
+* ::placeholder {
+  color: #c1c2c3;
+}
+
+body, body .card, body .card .center, body .board, body .chat .msgDiv {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
   -webkit-box-pack: center;
       -ms-flex-pack: center;
           justify-content: center;
 }
 
 body {
-  min-height: 100vh;
+  position: relative;
   background: #010203;
-  padding: 10px;
+  min-height: 100vh;
 }
 
 body .error{
@@ -40,68 +56,171 @@ body .card {
   border-radius: 25px;
   width: 50vh;
   height: 65vh;
+  z-index: 1;
+}
+
+body .card,
+body .card input {
+  font-size: 20px;
 }
 
 body .card input {
   background: none;
   border: none;
   text-transform: capitalize;
-  font-size: 18px;
+  width: 100%;
+}
+
+body .card .suit {
+  color: #010203;
 }
 
 body .card .corner {
   margin: 30px;
   position: absolute;
+  width: 25%;
+}
+
+body .card .corner,
+body .card .corner input {
   text-align: center;
-  width: 15%;
 }
 
-body .card .corner .suit {
-  font-size: 20px;
-}
-
-body .card .corner.left {
+body .card .corner#left {
   top: 0;
   left: 0;
 }
 
-body .card .corner.right {
-  bottom: 0;
+body .card .corner#right {
   right: 0;
-  -webkit-transform: rotate(-180deg);
-          transform: rotate(-180deg);
+  bottom: 0;
+  -webkit-transform: rotate(180deg);
+          transform: rotate(180deg);
+}
+
+body .card .corner .suit {
+  font-size: 28px;
 }
 
 body .card .center {
   position: relative;
 }
 
-body .card .center .suit {
-  position: absolute;
-  font-size: 400px;
-}
-
-body .card .center #btnStart {
-  font-weight: bold;
-  z-index: 1;
-  color: white;
+body .card .center input {
+  color: #f1f2f3;
+  z-index: 2;
   font-size: 24px;
   cursor: pointer;
 }
 
-body .wait{
-  display: flex;
+body .card .center .suit {
+  position: absolute;
+  top: -300px !important;
   font-weight: bold;
-  padding: 60px;
-  border-radius: 6px;
-  z-index: 1;
-  color: white;
-  border: 4px dashed white;
+  font-size: 400px;
+}
+
+body .waiting {
+  color: #f1f2f3;
+  text-align: center;
+}
+
+body .waiting h1 {
+  font-size: 48px;
+}
+
+body .waiting #counter {
   font-size: 24px;
-  flex-direction: column;
+}
+
+body .board {
+  position: absolute;
+  left: 0;
+  width: 75%;
+  background: #35654d;
+  height: 100vh;
+  overflow: scroll;
+}
+
+body .chat {
+  position: fixed;
+  right: 0;
+  width: 25%;
+  min-height: 100vh;
+  background: #f1f2f3;
+}
+
+body .chat #history {
+  height: 90vh;
+  padding: 30px;
+  overflow: scroll;
+}
+
+body .chat .msgDiv {
+  height: 10vh;
+}
+
+body .chat .msgDiv #msg {
+  border: none;
+  background: #010203;
+  border-radius: 25px;
+  color: #f1f2f3;
+  padding: 15px;
+  margin-right: 15px;
+}
+
+body .chat .msgDiv #btnSend {
+  background: teal;
+  padding: 15px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  color: #f1f2f3;
+}
+.dealer
+{
+  position: absolute;
+  top: 80px;
+  left: 50;
+}
+
+.container
+{
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+.hand img
+{
+  width: 100px;
+}
+
+#active
+{
+  border: 2px solid #0077FF;
+}
+
+.commands
+{
+  position: absolute;
+  top: 80vh;
+  left: 50;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
   align-items: center;
 }
-#waitingplayer{margin-top: 20px;}
+.commands .request
+{}
+#btnCard
+{
 
+}
+.commands .stop
+{}
+#btnStop
+{
 
+}
 /*# sourceMappingURL=style.css.map */

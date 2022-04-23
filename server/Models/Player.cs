@@ -11,6 +11,19 @@ public class Player
     public double Bet { get; set; } = 0;
     public int Ncards { get; set; }
     public Card[] Cards { get; set; } = new Card[10];
+    private bool _blackjack;
+    public bool Blackjack 
+    { 
+      get 
+        { 
+            _blackjack=false;
+            if(Ncards==2 && Score==21)
+                _blackjack=true;
+
+            return _blackjack; 
+        }
+      set { _blackjack = false; }
+    }
     private int _score;
     public int Score 
     { 
@@ -52,6 +65,13 @@ public class Player
         public string Code { get; set; }
         public Uri Image { get; set; }
         public string Value { get; set; }
+
+        public Card (string _c, Uri _i, string _v)
+        {
+            Code = _c;
+            Image = _i;
+            Value = _v;
+        }
     }
 
     //Constructor Dealer
@@ -78,10 +98,7 @@ public class Player
 
     public void AddCard(string _c, Uri _i, string _v)
     {
-        Cards[Ncards] = new();
-        Cards[Ncards].Code = _c;
-        Cards[Ncards].Image = _i;
-        Cards[Ncards].Value = _v;
+        Cards[Ncards] = new(_c, _i, _v);
         Ncards++;
     }
 }

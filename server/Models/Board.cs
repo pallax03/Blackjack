@@ -18,11 +18,11 @@ public class Board : WebSocketBehavior
     private static DrawCard _jsonDrawCard = new DrawCard();//Drawed Card Obj
     private static int whosturn=0;
     private static bool game_started=false;
-    private static string backcard = "https://deckofcardsapi.com/static/img/back.png";
+    private static Player.Card backcard = new Player.Card("BC","https://deckofcardsapi.com/static/img/back.png".ToUri(),"0");
 
     public void SetDealer()
     {
-        _players.Add(new Player(0, "dealer", 0));//player 0 is the dealer
+        _players.Add(new Player(0, "Dealer", 0));//player 0 is the dealer
     }
 
     protected override void OnOpen()
@@ -192,7 +192,7 @@ public class Board : WebSocketBehavior
 
     public void WhosNext()
     {
-        SendToAll("turn|"+whosturn);
+        SendToAll("whoactive|"+whosturn);
         _players[whosturn].Socket.Send("|yourturn|");
     }
     public void GoNext()
@@ -229,19 +229,12 @@ public class Board : WebSocketBehavior
         var _jsonPlayer="";
         if(_players[who].Ncards==1)//Hide the second card of the dealer if he got only 1 card
         {
-            Player.Card tmp = new Player.Card();
-            tmp.Code = _players[who].Cards[_players[who].Ncards].Code;
-            tmp.Image = _players[who].Cards[_players[who].Ncards].Image;
-            tmp.Value = _players[who].Cards[_players[who].Ncards].Value;
-            _players[who].Cards[_players[who].Ncards].Code="";
-            _players[who].Cards[_players[who].Ncards].Image=backcard.ToUri();
-            _players[who].Cards[_players[who].Ncards].Value="0";
-            _players[who].Ncards=2;
+            Player.Card second_card = new Player.Card(_players[who].Cards[_players[who].Ncards].Code, _players[who].Cards[_players[who].Ncards].Image, _players[who].Cards[_players[who].Ncards].Value);
+            _players[who].Cards[_players[who].Ncards]=backcard;
+            _players[who].Ncards=2;//Dice che ne ha due in modo che iul client ne mostra due
             _jsonPlayer = JsonConvert.SerializeObject(_players[who]);//convert the player class to a json
-            _players[who].Ncards=1;
-            _players[who].Cards[_players[who].Ncards].Code=tmp.Code;
-            _players[who].Cards[_players[who].Ncards].Image=tmp.Image;
-            _players[who].Cards[_players[who].Ncards].Value=tmp.Value;
+            _players[who].Ncards=1;//ma comunque all'interno del server la reimposto come una per riscriverla
+            _players[who].Cards[_players[who].Ncards]=second_card;
         }
         else if(who!=0)
         {
@@ -253,11 +246,11 @@ public class Board : WebSocketBehavior
         else
             _jsonPlayer = JsonConvert.SerializeObject(_players[who]);//convert the player class to a json
 
-        for(int i=0;i<_players[who].Ncards;i++) Console.WriteLine("code: "+_players[who].Cards[i].Code+"\nimage: "+_players[who].Cards[i].Image+"\nvalue: "+_players[who].Cards[i].Value );   
         return _jsonPlayer;
     }
     public void DealerTurn()
     {
+        SendToAll("whoactive|"+whosturn);
         _players[0].Ncards=2;//Scopre la carta del dealer
         //richiede un altra carta il dealer se il punteggio non supera 16
         while (_players[0].Score<=16)
@@ -267,15 +260,17 @@ public class Board : WebSocketBehavior
     public void WhoWin()
     {
         Console.WriteLine("\nEND GAME\n");
-        double loses=0;
-        double prize=0;
         int winners=0;
         for (int i = 1; i < _players.Count; i++)
         {
             if(_players[i].Score>21)
+            {
+                _players[i].Bet=0;
                 _players[i].Win=false;
+            }
             else if(_players[0].Score < 22)
             {
+                _players[0].Win=true;
                 if(_players[i].Score>_players[0].Score)
                 {
                     _players[i].Win=true;
@@ -283,45 +278,40 @@ public class Board : WebSocketBehavior
                 }
                 else if(_players[i].Score==_players[0].Score)
                 {
-                    if(_players[i].Ncards<_players[0].Ncards)
+                    if(_players[i].Blackjack)
+                    {
+                        _players[i].Win=true;
+                        if(_players[0].Blackjack)
+                            _players[0].Win=true;
+                        else
+                        {
+                            _players[0].Win=false; _players[i].Bet=(_players[i].Bet*2)+(_players[i].Bet/2);
+                        }
+                    }
+                    else
                     {
                         _players[i].Win=true;
                         winners++;
                     }
-                    else
-                    {
-                        _players[i].Win=false;
-                    }
                 }
                 else
+                {
                     _players[i].Win=false;
+                    _players[i].Bet=0;
+                }
             }
             else
             {
                 _players[i].Win=true;
                 winners++;
             }
-            loses+=_players[i].Bet;
-            _players[i].Bet=0;
         }
-        if(winners==0)
-        {
-            prize=loses;
-            _players[0].Win=true;
-        }
-        else
-        {
-            prize=loses/winners;
+        if(winners>0)
             _players[0].Win=false;
-        }
-        
-        //Bet System and Win share
+
+        //Win share
         for (int i = 0; i < _players.Count; i++)
         {
-            if(_players[i].Win==true)
-            {
-                _players[i].Bet=prize;
-            }
             SendToAll("player|"+SharePlayer(i));
             Console.WriteLine($"Name: {_players[i].Name}, Score: {_players[i].Score}, Bet: {_players[whosturn].Bet}, Win: "+_players[i].Win);
         }
