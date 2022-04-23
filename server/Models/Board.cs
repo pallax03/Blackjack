@@ -229,10 +229,19 @@ public class Board : WebSocketBehavior
         var _jsonPlayer="";
         if(_players[who].Ncards==1)//Hide the second card of the dealer if he got only 1 card
         {
-            var cards = _players[who].Cards[_players[who].Ncards];
-            _players[who].Cards[_players[who].Ncards]=null;
+            Player.Card tmp = new Player.Card();
+            tmp.Code = _players[who].Cards[_players[who].Ncards].Code;
+            tmp.Image = _players[who].Cards[_players[who].Ncards].Image;
+            tmp.Value = _players[who].Cards[_players[who].Ncards].Value;
+            _players[who].Cards[_players[who].Ncards].Code="";
+            _players[who].Cards[_players[who].Ncards].Image=backcard.ToUri();
+            _players[who].Cards[_players[who].Ncards].Value="0";
+            _players[who].Ncards=2;
             _jsonPlayer = JsonConvert.SerializeObject(_players[who]);//convert the player class to a json
-            _players[who].Cards[_players[who].Ncards] = cards;
+            _players[who].Ncards=1;
+            _players[who].Cards[_players[who].Ncards].Code=tmp.Code;
+            _players[who].Cards[_players[who].Ncards].Image=tmp.Image;
+            _players[who].Cards[_players[who].Ncards].Value=tmp.Value;
         }
         else if(who!=0)
         {
@@ -243,6 +252,8 @@ public class Board : WebSocketBehavior
         }
         else
             _jsonPlayer = JsonConvert.SerializeObject(_players[who]);//convert the player class to a json
+
+        for(int i=0;i<_players[who].Ncards;i++) Console.WriteLine("code: "+_players[who].Cards[i].Code+"\nimage: "+_players[who].Cards[i].Image+"\nvalue: "+_players[who].Cards[i].Value );   
         return _jsonPlayer;
     }
     public void DealerTurn()
