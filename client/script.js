@@ -1,8 +1,8 @@
 //start function
 document.getElementsByClassName('card')[0].style.display = 'none';
 document.getElementsByClassName('waiting')[0].style.display = 'none';
-document.getElementsByClassName('board')[0].style.display = 'none';
-document.getElementsByClassName('chat')[0].style.display = 'none';
+document.getElementsByClassName('board')[0].style.display = 'none';//contains chat and liveboard
+document.getElementsByClassName('commands')[0].style.display='none';
 
 //  game
 const wsboard = new WebSocket("ws://127.0.0.1:9000/Board");   //server da contattare per giocare
@@ -37,18 +37,13 @@ wsboard.addEventListener("message", e =>{  //evento di ricezione messaggio
         giveStatus(words[1]);
     }
     else if(e.data=="|yourturn|"){
-        setCommands();
+        document.getElementsByClassName('commands')[0].style.display='';
     }
     else if(e.data=="|stop|"){
-        document.getElementsByClassName('commands')[0].innerHTML='';
+        document.getElementsByClassName('commands')[0].style.display='none';
     }
     else if(e.data=="|newgame|"){
-        document.getElementsByClassName('card')[0].style.display = '';
-        if(nickname!="")
-        {
-            document.getElementsByClassName('card')[0].style.opacity = '0.5';
-            document.getElementById('nick').setAttribute("readonly", true);
-        } 
+        //document.getElementsByClassName('commands')[0].innerHTML='<div class="???"><input type="button" value="Request Card" id="btnCard" onclick=send(\'|card|\')></div><div class="???"><input type="button" value="Stop" id="btnStop" onclick=send(\'|stop|\')></div>';
     }
 });
 
@@ -56,15 +51,27 @@ wsboard.addEventListener("message", e =>{  //evento di ricezione messaggio
 document.getElementById("nick").addEventListener('keyup', () => {
     document.getElementById("cloneNick").value = document.getElementById("nick").value;
 })
+
 //avvia il gioco se viene cliccato invio.
+document.getElementById('startbet').addEventListener('keydown', function (e) {
+	if (e.code == 'Enter') startGame();
+});
 document.getElementById('nick').addEventListener('keydown', function (e) {
 	if (e.code == 'Enter') startGame();
 });
-//capitalizza una stringa.
+
+//capitalizza le parole(ex. alex mazzoni --> Alex Mazzoni).
 function capitalize(str) {
     const lower = str.toLowerCase();
-    return str.charAt(0).toUpperCase() + lower.slice(1);
+    var ris="";
+    var names = lower.split(' ');
+    for (let index = 0; index < names.length; index++) {
+        ris += names[index].charAt(0).toUpperCase() + names[index].slice(1);
+        if(index+1 < names.length) ris+= ' ';
+    }
+    return ris;
 }
+
 //Invio messaggio al server
 function send(str){   
     wsboard.send(str);
@@ -82,43 +89,46 @@ function clientSeed() {
     for(var i = 0; i < suit.length; i++)
         suit[i].innerHTML = seed;
 }
+function redSeed() {
+    var suit = document.getElementsByClassName('suit');
+    if((Math.floor(Math.random() * 11)%2)==0)
+        seed="♥";//♥♦♣♠
+    else
+        seed="♦";//♥♦♣♠
 
-function checkNickname() {
-	var str = document.getElementById('nick').value;
-
-	if (str == null || str.match(/^ *$/) != null) {
-		document.body.style.background = 'red';
-
-		var userInput = document.getElementsByClassName('nickname');
-
-		for (var i = 0; i < userInput.length; i++) {
-			userInput[i].value = '';
-			userInput[i].style.color = 'red';
-		}
-
-		var suit = document.getElementsByClassName('suit');
-        if((Math.floor(Math.random() * 11)%2)==0)
-            seed="♥";//♥♦♣♠
-        else
-            seed="♦";//♥♦♣♠
-
-		for (var i = 0; i < suit.length; i++) {
-			suit[i].style.color = 'red';
-			suit[i].innerHTML = seed;
-		}
-		return true;
-	}
+    for (var i = 0; i < suit.length; i++) {
+        suit[i].style.color = 'red';
+        suit[i].innerHTML = seed;
+    }
+    document.body.style.background = 'red';
 }
 
+function checkBet() {
+    var money = parseFloat(document.getElementById('startbet').value);
+	if (isNaN(money) || money > parseFloat(document.getElementById('balance').innerHTML)) {redSeed();return true;}
+}
+function checkNickname() {
+	var str = document.getElementById('nick').value;
+	if (str == null || str.match(/^ *$/) != null) {redSeed();return true;}
+}
 function startGame() {
-	if (!checkNickname()) {
-		document.body.style.background = '';
-		document.getElementsByClassName('card')[0].style.display = 'none';
-		nickname = document.getElementById('nick').value;
-		send(capitalize(nickname) + '|ready|' + bet);
-		waitPlayers();
-		startChat();
-	}
+    if (!checkNickname()) {
+        if(!checkBet()) {
+            document.body.style.background = '';
+            document.getElementsByClassName('card')[0].style.display = 'none';
+            nickname = capitalize(document.getElementById('nick').value);
+            bet = document.getElementById('startbet').value;
+            document.getElementById('balance').innerHTML = parseFloat(document.getElementById('balance').innerHTML)-bet;
+            send(nickname + '|ready|' + bet);
+            waitPlayers();
+            startChat();
+        }
+    }
+}
+function restartGame() {
+    document.getElementsByClassName('liveboard')[0].style.display = 'none';
+    send(nickname + '|ready|' + bet);
+    waitPlayers();
 }
 
 function waitPlayers() {
@@ -136,7 +146,7 @@ function setUpBoard() {
 		html += "<div class='player'><div class='score'></div><div class='hand'></div></div>";
 	}
     html+='</div>';
-	document.getElementsByClassName('board')[0].innerHTML += html;
+	document.getElementsByClassName('liveboard')[0].innerHTML = html;
     //document.body.style.background = "#35654d";
 }
 
@@ -156,10 +166,6 @@ function resetStatus() {
         document.getElementsByClassName('player')[index].id = "";
 }
 
-function setCommands() {
-    document.getElementsByClassName('commands')[0].innerHTML='<div class="???"><input type="button" value="Request Card" id="btnCard" onclick=send(\'|card|\')></div><div class="???"><input type="button" value="Stop" id="btnStop" onclick=send(\'|stop|\')></div>';
-}
-
 function givePlayer(json)
 {
     jsonObj = JSON.parse(json);
@@ -175,6 +181,7 @@ function givePlayer(json)
 
 //chat
 const wschat = new WebSocket("ws://127.0.0.1:9000/Chat");   //server da contattare per giocare
+var whohistory="";
 
 wschat.addEventListener("open", () =>{ });
 
@@ -185,21 +192,37 @@ function startChat() {
 
 wschat.addEventListener("message", e =>{  //evento di ricezione messaggio chat
 	console.log(e.data);
+    var chat = document.getElementById('history');
 	words = e.data.split('|');
+
 	if (words[0] == idClient) words[2] = 'You';
-	document.getElementById('history').innerHTML += words[2] + ': ' + words[1] + '<br>';
+    if(whohistory=="")//fa un indentazione carina nella chat 
+        chat.innerHTML += words[2] + ': ' + words[1];
+    else
+    {
+        if(whohistory==words[2]) 
+            chat.innerHTML += '<br>' + words[2] + ': ' + words[1];
+        else
+            chat.innerHTML += '<br><br>' + words[2] + ': ' + words[1];
+    }
+
+    whohistory = words[2];
+    chat.scrollTop = chat.scrollHeight;
 });
 
 // invia il messaggio se viene cliccato invio.
-document.getElementById('msg').addEventListener('keydown', function (e) {
-	if (e.code == 'Enter') chat();
-	document.getElementById('msg').focus();
-});
+function press(e) {
+    if (e.code == 'Enter') chat();
+    document.getElementById('msg').focus();
+}
 
 // Invio il messaggio al server.
 function chat() {
-	wschat.send(document.getElementById('msg').value);
-	document.getElementById('msg').value = '';
-	document.getElementById('msg').focus();
+    var msg = document.getElementById('msg').value;
+    if (msg!="") {
+        wschat.send(msg);
+        document.getElementById('msg').value = '';
+        document.getElementById('msg').focus();
+    }
 }
 //------------------

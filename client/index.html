@@ -16,8 +16,9 @@
                 <span class="suit"></span>
             </div>
             <div class="center">
-                <input type="button" value="Start Game" onclick="startGame()">
+                <input type="button" value="Start Game" onclick="startGame()"/>
                 <span class="suit"></span>
+                <input type="text" class="startbet" id="startbet" placeholder="0.00 €" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^0[^.]/, '0');" />
             </div>
             <div class="corner" id="right">
                 <input class="nickname" type="text" id="cloneNick" placeholder="nickname" readonly>
@@ -29,18 +30,32 @@
 			<span id="counter"></span>
 		</div>
 		<div class="board">
-			
+            <div class="chat">
+                <h1 id="title">Live Chat</h1>
+                <div id="history"></div>
+                <div class="msgDiv">
+                    <input type="text" id="msg" onkeypress="press(event)" placeholder="Press enter to send" />
+                </div>
+            </div>
+            <div class="liveboard">
+                
+            </div>
 		</div>
         <div class="commands">
-            
+            <div class="btncard">
+                <span onclick="send('|card|')">CARD</span>
+            </div>
+            <div class="btnstop">
+                <span onclick="send('|stop|')">STOP</span>
+            </div>
+            <div class="newgame">
+                <span onclick="restartGame()">start</span>
+            </div>
         </div>
-		<div class="chat">
-			<div id="history"></div>
-			<div class="msgDiv">
-				<input type="text" id="msg" placeholder="Message" />
-				<input type="button" id="btnSend" value="➤" onclick="chat()" />
-			</div>
-		</div>
+        <footer id="footer">
+            <a href="https://github.com/pallaxx"> <p> © – Copyright. - Alex Mazzoni / Diego Mari ® - All rights reserved - Blackjack™. </p></a>
+            <span class="balance" > balance: <div style="display: inline-block;" id="balance">100.00</div> €</span>
+        </footer>
         <!-- JS -->
         <script src="./script.js">
         </script>

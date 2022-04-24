@@ -8,7 +8,7 @@ public class Player
     public int Id { get; set; }
     public string Name { get; set; }
     public WebSocket Socket { get; set; }
-    public double Bet { get; set; } = 0;
+    public double Bet { get; set; }
     public int Ncards { get; set; }
     public Card[] Cards { get; set; } = new Card[10];
     private bool _blackjack;

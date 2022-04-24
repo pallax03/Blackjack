@@ -8,6 +8,8 @@
   padding: 0;
 }
 
+a{cursor: pointer; text-decoration: none;}
+
 * ::-webkit-input-placeholder {
   color: #c1c2c3;
 }
@@ -22,6 +24,10 @@
 
 * ::placeholder {
   color: #c1c2c3;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
 }
 
 body, body .card, body .card .center, body .board, body .chat .msgDiv {
@@ -39,7 +45,7 @@ body, body .card, body .card .center, body .board, body .chat .msgDiv {
 body {
   position: relative;
   background: #010203;
-  min-height: 100vh;
+  height: 100vh;
 }
 
 body .error{
@@ -104,14 +110,25 @@ body .card .corner .suit {
 
 body .card .center {
   position: relative;
+  cursor: pointer;
 }
 
-body .card .center input {
+body .card .center input{
   color: #f1f2f3;
   z-index: 2;
   font-size: 24px;
   cursor: pointer;
 }
+body .card .center .startbet{
+  cursor: text;
+    position: absolute;
+    top: 150px;
+    left: 25px;
+    width: 70px;
+    text-align: center;
+    color: black;
+}
+
 
 body .card .center .suit {
   position: absolute;
@@ -136,24 +153,37 @@ body .waiting #counter {
 body .board {
   position: absolute;
   left: 0;
-  width: 75%;
+  width: 100%;
   background: #35654d;
   height: 100vh;
-  overflow: scroll;
+  overflow: hidden;
 }
 
 body .chat {
-  position: fixed;
+  position: absolute;
+  top: 0;
   right: 0;
-  width: 25%;
-  min-height: 100vh;
-  background: #f1f2f3;
+  width: 400px;
+  height: auto;
+  margin: 10px;
+  border-radius: 25px;
+  background-color: rgba(0,0,0, 0.3);
+  /* filter: blur(8px); */
+  /* -webkit-filter: blur(1px); */
 }
 
 body .chat #history {
-  height: 90vh;
+  top: 20px;
+  height: 30vh;
   padding: 30px;
-  overflow: scroll;
+  font-size: 20px;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+body .chat #title {
+  margin-top: 10px;
+  text-align: center;
 }
 
 body .chat .msgDiv {
@@ -166,39 +196,46 @@ body .chat .msgDiv #msg {
   border-radius: 25px;
   color: #f1f2f3;
   padding: 15px;
-  margin-right: 15px;
+  font-size: 20px;
+  width: 340px;
 }
 
-body .chat .msgDiv #btnSend {
-  background: teal;
-  padding: 15px;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  color: #f1f2f3;
+.liveboard{width: 100%;
+  display: flex;
+  justify-content: center;
 }
-.dealer
-{
+.dealer{
   position: absolute;
   top: 80px;
-  left: 50;
-}
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}.dealer .score{font-size: 30px;margin-bottom: 8px;}.dealer .hand{}.dealer .hand img{width: 200px;}
 
-.container
-{
+.container{
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
+  margin-top: 100px;
 }
-
-.hand img
-{
-  width: 100px;
-}
+.player{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column-reverse;
+  margin: 50px;
+}.player .hand{width: 200px;}.player .hand img{width: 100px;}
 
 #active
 {
-  border: 2px solid #0077FF;
+  font-size: 25px;
+  animation: yourturn 2s infinite;
+}
+@keyframes yourturn {
+  0%{color: black;}
+  50%{color: red;}
+  100%{color: black;}
 }
 
 .commands
@@ -211,16 +248,21 @@ body .chat .msgDiv #btnSend {
   justify-content: center;
   align-items: center;
 }
-.commands .request
-{}
-#btnCard
-{
 
-}
-.commands .stop
-{}
-#btnStop
-{
 
+footer
+{
+position: absolute;
+width: 100%;
+background-color: white;
+bottom: 0;
+text-align: center;
+} footer a p {
+font-size: 20px;
+padding: 10px;
+color: black;
+text-decoration: none;
+} footer .balance{
+  font-size: 30px;
 }
 /*# sourceMappingURL=style.css.map */
