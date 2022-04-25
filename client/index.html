@@ -12,16 +12,16 @@
     <body>
         <div class="card">
             <div class="corner" id="left">
-                <input class="nickname" type="text" id="nick" placeholder="nickname" >
+                <input class="nickname" type="text" id="nick" style="animation: shake 0.6s infinite;" placeholder="nickname" >
                 <span class="suit"></span>
             </div>
             <div class="center">
-                <input type="button" value="Start Game" onclick="startGame()"/>
+                <input type="button" value="Start Game" id="btnStart" onclick="startGame()"/>
                 <span class="suit"></span>
-                <input type="text" class="startbet" id="startbet" placeholder="0.00 €" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^0[^.]/, '0');" />
+                <input type="text" class="startbet" id="startbet" style="animation: shake 0.6s infinite;" placeholder="0.00 €" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1').replace(/^0[^.]/, '0');" />
             </div>
             <div class="corner" id="right">
-                <input class="nickname" type="text" id="cloneNick" placeholder="nickname" readonly>
+                <input class="nickname" type="text" id="cloneNick" style="animation: shake 0.6s infinite;" placeholder="nickname" readonly>
                 <span class="suit"></span>
             </div>
         </div>
@@ -40,16 +40,13 @@
             <div class="liveboard">
                 
             </div>
+            <div class="msgreward"></div>
 		</div>
         <div class="commands">
-            <div class="btncard">
-                <span onclick="send('|card|')">CARD</span>
-            </div>
-            <div class="btnstop">
-                <span onclick="send('|stop|')">STOP</span>
-            </div>
+            <div class="btncard" onclick="send('|card|')">CARD</div>
+            <div class="btnstop" onclick="send('|stop|')">STOP</div>
             <div class="newgame">
-                <span onclick="restartGame()">start</span>
+                <span id="btnrestart" onclick="setNewGame()"><h1>New Game</h1></span>
             </div>
         </div>
         <footer id="footer">

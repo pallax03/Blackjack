@@ -22,7 +22,7 @@ public class Board : WebSocketBehavior
 
     public void SetDealer()
     {
-        _players.Add(new Player(0, "Dealer", 0));//player 0 is the dealer
+        _players.Add(new Player("0", "Dealer", 0));//player 0 is the dealer
     }
 
     protected override void OnOpen()
@@ -40,7 +40,7 @@ public class Board : WebSocketBehavior
 
             _clientSockets.Add(Context.WebSocket);
             _clientready.Add(false);
-            _players.Add(new Player(_players.Count, Context.WebSocket));
+            _players.Add(new Player(_players.Count.ToString(), Context.WebSocket));
             Context.WebSocket.Send("idClient|"+(_players.Count-1));
         }
     }
@@ -260,12 +260,14 @@ public class Board : WebSocketBehavior
     public void WhoWin()
     {
         Console.WriteLine("\nEND GAME\n");
+        _players[0].Win=true;
         int winners=0;
         for (int i = 1; i < _players.Count; i++)
         {
+            Console.WriteLine(_players[i].Blackjack);
             if(_players[i].Score>21)
             {
-                _players[i].Bet=0;
+                _players[i].Bet=0;//perde
                 _players[i].Win=false;
             }
             else if(_players[0].Score < 22)
@@ -274,6 +276,7 @@ public class Board : WebSocketBehavior
                 if(_players[i].Score>_players[0].Score)
                 {
                     _players[i].Win=true;
+                    _players[i].Bet*=2;//vince
                     winners++;
                 }
                 else if(_players[i].Score==_players[0].Score)
@@ -281,39 +284,38 @@ public class Board : WebSocketBehavior
                     if(_players[i].Blackjack)
                     {
                         _players[i].Win=true;
-                        if(_players[0].Blackjack)
-                            _players[0].Win=true;
-                        else
-                        {
-                            _players[0].Win=false; _players[i].Bet=(_players[i].Bet*2)+(_players[i].Bet/2);
+                        if(_players[0].Blackjack) {
+                            _players[0].Win=true;//pareggio la puntata non cambia gli ritorna quello messo
+                        } else {
+                            _players[0].Win=false; _players[i].Bet=(_players[i].Bet*2)+(_players[i].Bet/2);//vince con blackjack
                         }
                     }
                     else
                     {
-                        _players[i].Win=true;
-                        winners++;
+                        _players[i].Win=true;//pareggio
                     }
                 }
                 else
                 {
                     _players[i].Win=false;
-                    _players[i].Bet=0;
+                    _players[i].Bet=0;//perde
                 }
             }
             else
             {
                 _players[i].Win=true;
+                _players[i].Bet*=2;//vince
                 winners++;
             }
         }
         if(winners>0)
             _players[0].Win=false;
-
+            
         //Win share
         for (int i = 0; i < _players.Count; i++)
         {
             SendToAll("player|"+SharePlayer(i));
-            Console.WriteLine($"Name: {_players[i].Name}, Score: {_players[i].Score}, Bet: {_players[whosturn].Bet}, Win: "+_players[i].Win);
+            Console.WriteLine($"Name: {_players[i].Name}, Score: {_players[i].Score}, Bet: {_players[i].Bet}, Win: "+_players[i].Win);
         }
         
         //finisce la partita

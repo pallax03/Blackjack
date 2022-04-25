@@ -5,7 +5,7 @@ using WebSocketSharp.Server;
 public class Player
 {
     //Property
-    public int Id { get; set; }
+    public string Id { get; set; }
     public string Name { get; set; }
     public WebSocket Socket { get; set; }
     public double Bet { get; set; }
@@ -56,7 +56,7 @@ public class Player
         }
       set { _score = 0; }
     }
-    public bool? Win { get; set; }
+    public bool? Win { get; set; } = null;
 
 
     //Class card
@@ -75,14 +75,14 @@ public class Player
     }
 
     //Constructor Dealer
-    public Player(int _id, string _name, int _ncards)
+    public Player(string _id, string _name, int _ncards)
     {   
         Id = _id;
         Name = _name;
         Ncards= _ncards;
     }
     //Constructor Player
-    public Player(int _id,WebSocket _socket)
+    public Player(string _id,WebSocket _socket)
     {   
         Id = _id;
         Socket = _socket;

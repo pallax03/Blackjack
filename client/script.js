@@ -2,7 +2,14 @@
 document.getElementsByClassName('card')[0].style.display = 'none';
 document.getElementsByClassName('waiting')[0].style.display = 'none';
 document.getElementsByClassName('board')[0].style.display = 'none';//contains chat and liveboard
-document.getElementsByClassName('commands')[0].style.display='none';
+document.getElementsByClassName('btncard')[0].style.display='none';
+document.getElementsByClassName('btnstop')[0].style.display='none';
+document.getElementsByClassName('newgame')[0].style.display='none';
+document.getElementsByClassName('balance')[0].style.display='none';
+document.getElementsByClassName('msgreward')[0].style.display = 'none';
+document.getElementById("nick").style.webkitAnimationPlayState = "paused";
+document.getElementById("cloneNick").style.webkitAnimationPlayState = "paused";
+document.getElementById("startbet").style.webkitAnimationPlayState = "paused";
 
 //  game
 const wsboard = new WebSocket("ws://127.0.0.1:9000/Board");   //server da contattare per giocare
@@ -13,7 +20,8 @@ var bet="0";
 var words = "";//words[1]: json
 
 wsboard.addEventListener("open", () =>{  //evento di connessione
-    document.getElementsByClassName('card')[0].style.display = "";
+    document.getElementsByClassName('card')[0].style.display = '';
+    document.getElementsByClassName('balance')[0].style.display='';
     clientSeed();
 	document.getElementById('nick').focus();
 });
@@ -37,13 +45,14 @@ wsboard.addEventListener("message", e =>{  //evento di ricezione messaggio
         giveStatus(words[1]);
     }
     else if(e.data=="|yourturn|"){
-        document.getElementsByClassName('commands')[0].style.display='';
+        commands();
     }
     else if(e.data=="|stop|"){
-        document.getElementsByClassName('commands')[0].style.display='none';
+        hideCommands();
     }
     else if(e.data=="|newgame|"){
-        //document.getElementsByClassName('commands')[0].innerHTML='<div class="???"><input type="button" value="Request Card" id="btnCard" onclick=send(\'|card|\')></div><div class="???"><input type="button" value="Stop" id="btnStop" onclick=send(\'|stop|\')></div>';
+        hideCommands();
+        document.getElementsByClassName('newgame')[0].style.display = '';
     }
 });
 
@@ -86,8 +95,10 @@ function clientSeed() {
     else
         seed="♣";//♥♦♣♠
 
-    for(var i = 0; i < suit.length; i++)
+    for(var i = 0; i < suit.length; i++){
+        suit[i].style.color = 'black';
         suit[i].innerHTML = seed;
+    }
 }
 function redSeed() {
     var suit = document.getElementsByClassName('suit');
@@ -105,11 +116,16 @@ function redSeed() {
 
 function checkBet() {
     var money = parseFloat(document.getElementById('startbet').value);
-	if (isNaN(money) || money > parseFloat(document.getElementById('balance').innerHTML)) {redSeed();return true;}
+	if (isNaN(money) || money > parseFloat(document.getElementById('balance').innerHTML))
+    { document.getElementById("startbet").style.webkitAnimationPlayState = "running"; setTimeout(function() {document.getElementById("startbet").style.webkitAnimationPlayState = "paused";}, 2000);
+     redSeed(); return true;}
 }
 function checkNickname() {
 	var str = document.getElementById('nick').value;
-	if (str == null || str.match(/^ *$/) != null) {redSeed();return true;}
+	if (str == null || str.match(/^ *$/) != null) {
+        document.getElementById("nick").style.webkitAnimationPlayState = "running"; setTimeout(function() {document.getElementById("nick").style.webkitAnimationPlayState = "paused";}, 2000);
+        document.getElementById("cloneNick").style.webkitAnimationPlayState = "running"; setTimeout(function() {document.getElementById("cloneNick").style.webkitAnimationPlayState = "paused";}, 2000);
+        redSeed();return true;}
 }
 function startGame() {
     if (!checkNickname()) {
@@ -125,25 +141,49 @@ function startGame() {
         }
     }
 }
-function restartGame() {
+
+function commands() {
+    document.getElementsByClassName('btncard')[0].style.display='';
+    document.getElementsByClassName('btnstop')[0].style.display='';
+}function hideCommands() {
+    document.getElementsByClassName('btncard')[0].style.display='none';
+    document.getElementsByClassName('btnstop')[0].style.display='none'; 
+}
+
+function setNewGame() {
+    document.getElementsByClassName('card')[0].style.display = '';
     document.getElementsByClassName('liveboard')[0].style.display = 'none';
-    send(nickname + '|ready|' + bet);
-    waitPlayers();
+    document.getElementById("btnrestart").onclick= viewBoard;
+    document.getElementById("btnrestart").innerHTML = "<h1>View Board</h1>";
+}
+function viewBoard() {
+    document.getElementsByClassName('card')[0].style.display = 'none';
+    document.getElementsByClassName('liveboard')[0].style.display = '';
+    document.getElementById("btnrestart").onclick= setNewGame;
+    document.getElementById("btnrestart").innerHTML = "<h1>New Game</h1>";
 }
 
 function waitPlayers() {
+    //Initialaze the card
+    document.getElementById('nick').setAttribute("readonly", true);
+    document.getElementById("startbet").value='';
+    clientSeed();
+    document.getElementById("btnrestart").onclick= setNewGame;
+    document.getElementById("btnrestart").innerHTML = "<h1>New Game</h1>";
+    document.getElementsByClassName('newgame')[0].style.display='none';
     document.getElementsByClassName('waiting')[0].style.display = '';
 }
 
 function setUpBoard() {
     document.getElementsByClassName('waiting')[0].style.display = 'none';
 	document.getElementsByClassName('board')[0].style.display = '';
+    document.getElementsByClassName('liveboard')[0].style.display = '';
 
-	var html = "<div class='dealer'><div class='score'></div><div class='hand'></div></div>";
+	var html = "<div class='dealer'><div class='score'></div><div class='hand'></div><div class='reward'></div></div>";
     html+='<div class="container">';
 	for (var i = 0; i < totalplayers; i++) {
 		// prettier-ignore
-		html += "<div class='player'><div class='score'></div><div class='hand'></div></div>";
+		html += "<div class='player'><div class='reward'></div><div class='score'></div><div class='hand'></div></div>";
 	}
     html+='</div>';
 	document.getElementsByClassName('liveboard')[0].innerHTML = html;
@@ -174,9 +214,35 @@ function givePlayer(json)
         img += "<img src='"+jsonObj.Cards[i].Image+"'>";
     }
     document.getElementsByClassName('hand')[jsonObj.Id].innerHTML=img;
-    if(jsonObj.Name==nickname)
+    if(jsonObj.Id==idClient)
         jsonObj.Name = "You";
     document.getElementsByClassName('score')[jsonObj.Id].innerHTML=jsonObj.Name+": "+ jsonObj.Score;
+    
+    if(jsonObj.Win==true){
+        document.getElementsByClassName('reward')[jsonObj.Id].innerHTML="✅";
+        if(jsonObj.Id==idClient)
+        {
+            if(parseFloat(jsonObj.Bet)==bet)
+                rewardMsg("Draw");
+            else
+                rewardMsg("Win"); 
+
+            document.getElementById('balance').innerHTML = parseFloat(document.getElementById('balance').innerHTML)+ parseFloat(jsonObj.Bet);
+        }
+    }else if (jsonObj.Win==false){
+        document.getElementsByClassName('reward')[jsonObj.Id].innerHTML="❌";
+        if(jsonObj.Id==idClient) rewardMsg("Lose");
+    }
+}
+
+function rewardMsg(str) {
+    document.getElementsByClassName('msgreward')[0].style.display = '';
+    document.getElementsByClassName('msgreward')[0].innerHTML="You "+ str +" "+ bet + " €";
+    setTimeout(hideRewardMsg, 10000);
+}
+
+function hideRewardMsg() {
+    document.getElementsByClassName('msgreward')[0].style.display = 'none';
 }
 
 //chat
