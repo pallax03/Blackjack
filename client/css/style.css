@@ -212,7 +212,7 @@ body .chat .msgDiv #msg {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-}.dealer .score{font-size: 25px;margin-bottom: 8px;}.dealer .hand{}.dealer .hand img{width: 200px;}
+}.dealer .score{font-size: 25px;margin-bottom: 8px;}.dealer .hand{}.dealer .hand img{width: 120px;}
 
 .container{
   display: flex;
@@ -237,7 +237,7 @@ body .chat .msgDiv #msg {
   padding: 10px;
   width: 400px;
   border: 2px solid #010203;
-  background-color: rgba(0,0,0,0.1);
+  background-color: #35654dd4;
   text-align: center;
   border-radius: 25px;
 }
@@ -270,7 +270,7 @@ body .chat .msgDiv #msg {
 .commands
 {
   position: absolute;
-  top: 65vh;
+  top: 60vh;
   left: 50;
   display: flex;
   flex-wrap: nowrap;
@@ -281,9 +281,9 @@ body .chat .msgDiv #msg {
 
 .btnstop {
   margin-left: 250px;
-  width: 200px;
-  height: 200px;
-  line-height: 200px;
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -291,7 +291,7 @@ body .chat .msgDiv #msg {
   position: relative;
   cursor: pointer;
   color: red;
-  font-size: 40px;
+  font-size: 20px;
 }
 .btnstop:hover {
   color: black !important;
@@ -337,26 +337,27 @@ body .chat .msgDiv #msg {
 
 .newgame{
   position: absolute;
-  top: 11vh;
-  width: 300px;
-  background: #f1f2f3;
-  padding: 20px;
+  top: 17vh;
+  color: white;
+  width: 500px;
+  background: black;
+  padding: 10px;
   /* line-height: 2.4; */
   /* font-weight: 300; */
   text-align: center;
-  border-radius: 25px;
+  border-radius: 20px;
   /* font-size: 32px; */
   cursor: pointer;
   transition: 0.6s all ease;
 }
 .newgame:hover{
-  color: red;
+  color: #35654d;
 }
 
 .btncard {
-  width: 200px;
-  height: 200px;
-  line-height: 200px;
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -364,7 +365,7 @@ body .chat .msgDiv #msg {
   position: relative;
   cursor: pointer;
   color: white;
-  font-size: 40px;
+  font-size: 20px;
 }
 .btncard:hover {
   color: black !important;
